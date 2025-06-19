@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "versatile-being-462910-m0",
+  "private_key_id": "5bb6d23afdc67462e4a37d18179717f821f05523",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCpL/i1NcKq8dpE\nTYkMvjRCHI+I00L5LQHQqrj0TCiboC4VnDLiEPB3OJ6vvM/R9nyrQBFhvTwm+E6r\naq2J14BlwlbAAMJVa6Zuo/4E9Bz7PV4oFaEI95hpWo1kIPsxunViJXwIMHrssg3v\naGDo0ZoZk6C1RPzJ4/OascjMXUS3VyRZCER/1LM6rkiPxnl448HUVT3eohf0RAgJ\nAj+tIvD3Tbwfs/FHb9/BLuHLKo40YpknYmyx8QSMR7Q4KKuENoHIJfzpgVowqCJr\nXvrJnJ4OAvShPpueNnSOUD+wgbn/fVUdAFv/RFHABU70FsX55MbTQGqXMvNDk3Uz\nJPOllxN7AgMBAAECggEASG1EW5LFoLeDWD0W//EG3wxp98l0wMXfIoyLO+3Ebobe\nY5rn/3X/8xG2gQXjs38A9LCrIDvJ3ebrip9S5hDuouFUkMJibv30FCY5DrbQF0+4\nmJFVzEhuIx/EKoqh7jJjoN3qIHlcjipVI9l7rv9XqD5WDHOZgfYHKYCVNMNysMc3\nkIaXG6M1ifdhHeCjX9S/C5+rLaf2VwU4II5PGdMqxdoVA5eUWsUhn9t5ZmA3QWyL\nL6Ahkd0MR8wNJCYwoHHO0RUTGPAREqimwrjFLBY5wzn/qwAqtwHKddm3CRqC2Nlj\naO24PpzXr7S8hEBKFr2AJK41KIBuHuTBGj6d53eQaQKBgQDTIXw+kA5ZaDeRzKVH\nTWLaPclrwo2KPOeKYfWIfoU1ur+Ajj0/YgWXYYbF7x4YVn4ihvYqpj6nhQptHwEp\nlgQjA0/va6dKPVg7RT2pGagTYHTX61FroG9otl7pKXBMmVFLYZRUEsmA9zz27ikf\nPYCpeBfF4fdtTjPcLW0fCf42cwKBgQDNJJDnWlXmcBOePwYC0ApQ0OysQKtZfaRb\nLmOLogYXKx6WeN8dXVCVcQsDsaiTLcbuGIGsCyvFjvn3APYnWP5hIhn2UIg6CVCA\nV2BScQEfH+1bgwsyZg9WahezF0ezsWv+6EFgKWxdH3IgXLc95FtUHeMlY1rqeoOb\n0trIFVJk2QKBgBgojbnu6+VpGmqxevwEq9oDFeghs+Zsf6YC/YBn0cBLJRyFqhZ1\nleQzgaNmcBAi3X3/6W0J5sNuYroHwS9L/h8vgtcHf3XsPQtTKfIOgH/vGo+WWpOx\nIO5fZ87QMgxhwr6YZMuV9r6uC6jJqaTseatqlXXMHG7Ccwavn/vcPd1nAoGACgqo\nLSr22XjS/QQIv0p/tsUDUMs5l//Wc8Apj0Q3GBs8PBFemole0HHgICYqIkozWqRI\ndKt3UQxWoAikA/kPOqH4s13tzSl3j1C3nlF5xJRDgh9ABQ+J4KkAz/trvxgIOUoV\nKSfd7hED/SGMtrLe5Zcw7zuVz7R/jLkdjH2+ssECgYBVFAkkOmCRWZqd85ACroxh\ngyoOl05pHIgK359dKPZmD1jD5xIh/b9DUKx9NNhsA3DAY1sVN5aVxYxsrzP64ZQg\nUH3wMy8tIqWfdI9EqotrRA2PIqAqYhlpwbCwUeFh3unW7Ung6LN7bolhjVilTGO9\niPiUHFr/nt4m3Pd5hFQN/w==\n-----END PRIVATE KEY-----\n",
+  "client_email": "gsheets@versatile-being-462910-m0.iam.gserviceaccount.com",
+  "client_id": "109357583624974699604",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gsheets%40versatile-being-462910-m0.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
