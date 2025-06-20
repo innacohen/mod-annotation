@@ -1,3 +1,53 @@
+#plt.title("Neither")
+#shap.plots.beeswarm(shap_values[:,:,-1])
+
+#plt.title("K Ca Channel")
+#shap.plots.beeswarm(shap_values[:,:,5])
+
+#plt.title("K Delayed Rectifier (1 gate)")
+#shap.plots.beeswarm(shap_values[:,:,6])
+
+#plt.title("K A-type (2 gates)")
+#shap.plots.beeswarm(shap_values[:,:,4])
+
+#=============GENERATE BARPLOTS==================================
+#subtypes = df_train[df_train["new_subtype_label"] != "z_neither"]
+# Sort the DataFrame by 'new_label' in alphabetical order
+#subtypes = subtypes.sort_values(by='new_subtype_label')
+# Create a count plot with different colors
+#plt.figure(figsize=(8, 5))
+#ax = sns.countplot(y='new_subtype_label', data=subtypes, order=subtypes['new_subtype_label'].unique())
+
+# Ensure only whole numbers appear on the x-axis
+#max_count = subtypes['new_subtype_label'].value_counts().max()  # Get max count for setting x-ticks
+#ax.set_xticks(np.arange(0, max_count + 1, 1))  # Set integer x-ticks
+
+# Add a title
+#plt.title('Training Set')
+
+# Show the plot
+#plt.show()
+#subtypes = df_test[df_test["new_subtype_label"] != "z_neither"]
+# Sort the DataFrame by 'new_label' in alphabetical order
+#subtypes = subtypes.sort_values(by='new_subtype_label')
+
+# Create a count plot with different colors
+#plt.figure(figsize=(8, 5))
+#ax = sns.countplot(y='new_subtype_label', data=subtypes, order=subtypes['new_subtype_label'].unique())
+
+# Ensure only whole numbers appear on the x-axis
+#max_count = subtypes['new_subtype_label'].value_counts().max()  # Get max count for setting x-ticks
+#ax.set_xticks(np.arange(0, max_count + 1, 1))  # Set integer x-ticks
+
+# Add a title
+#plt.title('Test Set')
+
+# Show the plot
+#plt.show()
+
+
+#===============================COMMENTS=============================#
+
 #row_id: 477 - commented out ranges included (https://modeldb.science/266818?tab=2&file=Ventricular_GUI.CircRes.ModelDB/Kss.mod)
 #row_id: 481 - has comments with mod_state variables (https://modeldb.science/267511?tab=2&file=S1_Thal_NetPyNE_Frontiers_2022/sim/mod/ProbAMPANMDA_EMS.mod)
 #row_id: 483 - has units in the mod_state ( https://modeldb.science/195666?tab=2&file=DewellGabbiani2018/mod_files/LGMD_KD_ca3.mod)
