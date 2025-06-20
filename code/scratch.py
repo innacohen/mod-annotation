@@ -1,3 +1,22 @@
+#row_id: 477 - commented out ranges included (https://modeldb.science/266818?tab=2&file=Ventricular_GUI.CircRes.ModelDB/Kss.mod)
+#row_id: 481 - has comments with mod_state variables (https://modeldb.science/267511?tab=2&file=S1_Thal_NetPyNE_Frontiers_2022/sim/mod/ProbAMPANMDA_EMS.mod)
+#row_id: 483 - has units in the mod_state ( https://modeldb.science/195666?tab=2&file=DewellGabbiani2018/mod_files/LGMD_KD_ca3.mod)
+#row_id: 483 - was only extracting ONE parameter instead of multiple parameters (fixed)
+#row_id 31 - has VALENCE in the write_ion (https://modeldb.science/116862?tab=2&file=b09jan13/IL3.mod)
+#row_id 99 - need to fix use_ion
+#todo: need to get INCLUDE for the notes table
+#todo: should we collapse low-frequency labels
+#todo: how do we process the SUFFIX, a lot of times the SUFFIX actually is the actual labeL?
+#todo: do we include the name
+#df["label"].value_counts()
+
+#REsol;ved Questions
+#Is it okay that we make assumptions like start after READ and stop after WRITE, what if there is no WRITE statement?
+#How to capture variables that are commented out vs. not? (don't capture stuff commented out)
+#what's the best way to capture 
+
+
+
 #df_anno2["new_label"] = df_anno2["label"].map(map_new_label)
 
 #df_train2.loc[df_train2["exclude_x86"]==1].index == df_train2.loc[df_train2["label"]=="exclude_old_architecture"].index
