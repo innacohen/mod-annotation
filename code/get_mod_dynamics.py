@@ -235,7 +235,9 @@ def run_sim(mod_file_path, v, doplot=False):
                 axs[1].plot(t_arr, vecs[var].as_numpy(), label=f'Current ({var})')
         axs[1].set_ylabel('Current (mA/um2)')
         axs[1].set_xlabel('Time (ms)')
-        plt.show()
+        #plt.show() replaced 238 with 239 and 240
+        plt.tight_layout()
+        plt.savefig(f"{suffix}_response_plot.png", dpi=300)
     return results
     
 
