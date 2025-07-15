@@ -241,11 +241,40 @@ def run_sim(mod_file_path, v, doplot=False):
     return results
     
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     # make sure all mod files in directory have been compiled
     # this may need to be changed depending on how this is used
     # e.g., include the folder path at the end
-    os.system('nrnivmodl')
+#    os.system('nrnivmodl')
+
+
+import pandas as pd
+
+if __name__ == "__main__":
+    mod_file_path = sys.argv[1]
+    voltage = float(sys.argv[2]) if len(sys.argv) > 2 else 20
+    suffix = get_suffix_name(mod_file_path)
+
+    results = run_sim(mod_file_path, voltage, doplot=True)
+
+    # Flatten and extract key features
+    flat_features = {
+        "mod_file": os.path.basename(mod_file_path),
+        "suffix": suffix,
+        "voltage": voltage,
+    }
+
+    for var in results:
+        for interval in results[var]:
+            for key, value in results[var][interval].items():
+                flat_features[f"{var}_{interval}_{key}"] = value
+
+    # Save to CSV
+    output_csv = "sim_features.csv"  # <-- adjust if needed
+    df = pd.DataFrame([flat_features])
+    file_exists = os.path.isfile(output_csv)
+
+    df.to_csv(output_csv, mode="a", header=not file_exists, index=False)
 
     mod_file_path = sys.argv[1]
     suffix = get_suffix_name(mod_file_path)
