@@ -1,0 +1,8 @@
+./cal2.c: ../cal2.mod
+	@printf " -> $(C_GREEN)NMODL$(C_RESET) $<\\n"
+	(cd "..";  MODLUNIT=$(NRNUNITS) $(NOCMODL) "cal2.mod" -o "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/x86_64")
+
+./cal2.o: ./cal2.c
+	@printf " -> $(C_GREEN)Compiling$(C_RESET) $<\\n"
+	$(COMPILE) -I".." $(INCLUDES) -fPIC -c $< -o $@
+
