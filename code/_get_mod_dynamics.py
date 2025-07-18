@@ -31,11 +31,12 @@ def get_baseline_temperature(mod_file_path):
     # If no baseline temperature found, return None
     return None
 
+#accomodates THREAD SUFFIX  
 def get_suffix_name(mod_file_path):
     with open(mod_file_path) as f:
         mod_text = f.read()
-    # Match lines like: SUFFIX name
-    match = re.search(r'^\s*SUFFIX\s+(\w+)', mod_text, re.MULTILINE)
+    # Match SUFFIX (with or without THREADSAFE before it)
+    match = re.search(r'\bSUFFIX\s+([A-Za-z0-9_]+)', mod_text)
     if match:
         return match.group(1)
     return None
