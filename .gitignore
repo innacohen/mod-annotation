@@ -1,0 +1,9 @@
+# Ignore credentials
+code/gsheet-creds.json
+
+# Ignore data folder
+data/
+
+# Ignore temporary or notebook checkpoint files
+*.ipynb_checkpoints/
+

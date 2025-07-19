@@ -41,23 +41,36 @@ def get_suffix_name(mod_file_path):
         return match.group(1)
     return None
 
+plot_dir = "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/sim_plots"
+os.makedirs(plot_dir, exist_ok=True)
+
+
 def run_sim(mod_file_path, v, doplot=False):
     from neuron import h
     h.load_file("stdrun.hoc")
     soma = h.Section("soma")
     soma.L = soma.diam = 10  # µm
-    #soma.insert(get_suffix_name(mod_file_path))
-    #replaced the line above with the below (line 48, lines 49-56)
+
+    # Get suffix and abort if not found
     suffix = get_suffix_name(mod_file_path)
+    if suffix is None:
+        raise ValueError(f"SUFFIX not found in {mod_file_path}")
     try:
+        # Try inserting as a distributed mechanism
         soma.insert(suffix)
+        mech_type = "density"
     except Exception as e:
-        print(f"Could not insert {suffix}: {e}")
-        print("Trying to instantiate as point process...")
-        chan = getattr(h, suffix)(soma(0.5))  # point process instantiation
+        print(f"Could not insert {suffix} as a distributed mechanism: {e}")
+        try:
+            # Try as a point process
+            chan = getattr(h, suffix)(soma(0.5))
+            mech_type = "point"
+        except Exception as e2:
+            raise RuntimeError(f"Failed to instantiate {suffix} as point process too: {e2}")
     # Set temperature based on mod file baseline or default to 6.3
     baseline_temp = get_baseline_temperature(mod_file_path)
     h.celsius = baseline_temp if baseline_temp is not None else 6.3
+    print(f"temperature = {h.celsius}, mechanism type = {mech_type}")
     print(f"temperature = {h.celsius}")
     seclamp = h.SEClamp(soma(0.5))
     seclamp.amp1 = -65  # mV
@@ -238,7 +251,9 @@ def run_sim(mod_file_path, v, doplot=False):
         axs[1].set_xlabel('Time (ms)')
         #plt.show() replaced 238 with 239 and 240
         plt.tight_layout()
-        plt.savefig(f"{suffix}_response_plot.png", dpi=300)
+        plot_path = os.path.join(plot_dir, f"sim_plot__{suffix}.png")
+        plt.savefig(plot_path, dpi=300)
+        print(f"Saved plot to: {plot_path}")
     return results
     
 
@@ -270,14 +285,13 @@ if __name__ == "__main__":
             for key, value in results[var][interval].items():
                 flat_features[f"{var}_{interval}_{key}"] = value
 
-    # Save to CSV
-    output_csv = "sim_features.csv"  # <-- adjust if needed
+   # Save to CSV in target directory
+    output_dir = "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/sim_csvs"
+    os.makedirs(output_dir, exist_ok=True)
+
+    basename = os.path.splitext(os.path.basename(mod_file_path))[0]
+    output_csv = os.path.join(output_dir, f"sim_features__{basename}.csv")
+
     df = pd.DataFrame([flat_features])
-    file_exists = os.path.isfile(output_csv)
-
-    df.to_csv(output_csv, mode="a", header=not file_exists, index=False)
-
-    mod_file_path = sys.argv[1]
-    suffix = get_suffix_name(mod_file_path)
-    print(sys.argv)
-    run_sim(mod_file_path, float(sys.argv[2]) if len(sys.argv) > 2 else 20, True)
+    df.to_csv(output_csv, index=False)
+    print(f"Saved features to: {output_csv}")
