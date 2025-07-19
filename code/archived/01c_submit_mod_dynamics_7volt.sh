@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -J mod-files
-#SBATCH -t 00:30:00
+#SBATCH -t 04:00:00
 #SBATCH --mail-type=ALL
 
 
