@@ -1,4 +1,4 @@
-# Ignore Google Sheets API credentials
+# Ignore Google Sheets API 
 *.json
 
 
