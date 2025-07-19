@@ -268,30 +268,36 @@ import pandas as pd
 
 if __name__ == "__main__":
     mod_file_path = sys.argv[1]
-    voltage = float(sys.argv[2]) if len(sys.argv) > 2 else 20
+    voltages = [-120, -90, -70, -50, -30, 0, 20]  # Extend or modify as needed
     suffix = get_suffix_name(mod_file_path)
 
-    results = run_sim(mod_file_path, voltage, doplot=True)
+    all_rows = []
 
-    # Flatten and extract key features
-    flat_features = {
-        "mod_file": os.path.basename(mod_file_path),
-        "suffix": suffix,
-        "voltage": voltage,
-    }
+    for v in voltages:
+        print(f"\nRunning simulation for voltage: {v} mV")
+        results = run_sim(mod_file_path, v, doplot=False)
 
-    for var in results:
-        for interval in results[var]:
-            for key, value in results[var][interval].items():
-                flat_features[f"{var}_{interval}_{key}"] = value
+        flat_features = {
+            "mod_file": os.path.basename(mod_file_path),
+            "suffix": suffix,
+            "voltage": v,
+        }
 
-   # Save to CSV in target directory
+        for var in results:
+            for interval in results[var]:
+                for key, value in results[var][interval].items():
+                    feat_name = f"{var}_{interval}_{key}_v{v}"
+                    flat_features[feat_name] = value
+
+        all_rows.append(flat_features)
+
+    # Save to CSV in target directory
     output_dir = "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/sim_csvs"
     os.makedirs(output_dir, exist_ok=True)
 
     basename = os.path.splitext(os.path.basename(mod_file_path))[0]
     output_csv = os.path.join(output_dir, f"sim_features__{basename}.csv")
 
-    df = pd.DataFrame([flat_features])
+    df = pd.DataFrame(all_rows)
     df.to_csv(output_csv, index=False)
-    print(f"Saved features to: {output_csv}")
+    print(f"\nSaved all voltage features to: {output_csv}")

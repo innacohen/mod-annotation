@@ -5,6 +5,9 @@ modroot="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/nmodl"
 script_path="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py"
 logroot="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/logs"
 
+# Voltages to simulate
+voltages=(-120 -90 -70 -50 -30 0 20)
+
 mkdir -p "$logroot"
 summary_log="$logroot/run_log.txt"
 echo "Log started at $(date)" > "$summary_log"
@@ -36,15 +39,18 @@ for modfile in "$modroot"/*.mod; do
         continue
     fi
 
-    # Run simulation
-    echo "Compilation succeeded. Running simulation..." >> "$logfile"
-    python "$script_path" "$modfile" 10 >> "$logfile" 2>&1
-    if [ $? -ne 0 ]; then
-        echo "Python simulation failed for $fname" | tee -a "$summary_log"
-        echo "See $logfile for details"
-    else
-        echo "Successfully processed $fname" | tee -a "$summary_log"
-    fi
+    echo "Compilation succeeded." >> "$logfile"
+
+    # Run simulation for each voltage
+    for v in "${voltages[@]}"; do
+        echo "Running simulation at ${v}mV..." >> "$logfile"
+        python "$script_path" "$modfile" "$v" >> "$logfile" 2>&1
+        if [ $? -ne 0 ]; then
+            echo "Python simulation failed for $fname at $v mV" | tee -a "$summary_log"
+        else
+            echo "Voltage $v mV processed for $fname" | tee -a "$summary_log"
+        fi
+    done
 
     # Per-file duration
     end_time=$(date +%s)
