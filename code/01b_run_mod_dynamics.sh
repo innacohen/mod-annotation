@@ -38,7 +38,7 @@ for modfile in "$modroot"/*.mod; do
 
     # Run simulation
     echo "Compilation succeeded. Running simulation..." >> "$logfile"
-    python "$script_path" "$modfile" 10 >> "$logfile" 2>&1
+    python "$script_path" "$modfile" -80 >> "$logfile" 2>&1
     if [ $? -ne 0 ]; then
         echo "Python simulation failed for $fname" | tee -a "$summary_log"
         echo "See $logfile for details"
