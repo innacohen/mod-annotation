@@ -1,0 +1,12 @@
+/tmp/modwork_i1uWLy
+Mod files: "./e69c59be20a70ff0b00fe25d121d65f2a3862b425ca2324ed340da861e983b53.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../e69c59be20a70ff0b00fe25d121d65f2a3862b425ca2324ed340da861e983b53.mod
+Translating e69c59be20a70ff0b00fe25d121d65f2a3862b425ca2324ed340da861e983b53.mod into /tmp/modwork_i1uWLy/x86_64/e69c59be20a70ff0b00fe25d121d65f2a3862b425ca2324ed340da861e983b53.c
+Couldn't open: sns.inc
+Couldn't open sns.inc
+make: *** [makemod2c_inc:3: e69c59be20a70ff0b00fe25d121d65f2a3862b425ca2324ed340da861e983b53.c] Error 1
+make: *** Waiting for unfinished jobs....

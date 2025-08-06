@@ -1,0 +1,12 @@
+/tmp/modwork_P2DdeD
+Mod files: "./6c24d97a4b0a010e2cdbe9e6dd3ba7a60f01aff5cab03b82ceb81a3878927171.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../6c24d97a4b0a010e2cdbe9e6dd3ba7a60f01aff5cab03b82ceb81a3878927171.mod
+Translating 6c24d97a4b0a010e2cdbe9e6dd3ba7a60f01aff5cab03b82ceb81a3878927171.mod into /tmp/modwork_P2DdeD/x86_64/6c24d97a4b0a010e2cdbe9e6dd3ba7a60f01aff5cab03b82ceb81a3878927171.c
+Couldn't open: aux_fun.inc
+Couldn't open aux_fun.inc
+make: *** [makemod2c_inc:3: 6c24d97a4b0a010e2cdbe9e6dd3ba7a60f01aff5cab03b82ceb81a3878927171.c] Error 1
+make: *** Waiting for unfinished jobs....

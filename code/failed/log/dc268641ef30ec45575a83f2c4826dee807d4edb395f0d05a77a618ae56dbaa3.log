@@ -1,0 +1,12 @@
+/tmp/modwork_Ra2jAT
+Mod files: "./dc268641ef30ec45575a83f2c4826dee807d4edb395f0d05a77a618ae56dbaa3.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../dc268641ef30ec45575a83f2c4826dee807d4edb395f0d05a77a618ae56dbaa3.mod
+Translating dc268641ef30ec45575a83f2c4826dee807d4edb395f0d05a77a618ae56dbaa3.mod into /tmp/modwork_Ra2jAT/x86_64/dc268641ef30ec45575a83f2c4826dee807d4edb395f0d05a77a618ae56dbaa3.c
+Couldn't open: bg_cvode.inc
+Couldn't open bg_cvode.inc
+make: *** [makemod2c_inc:3: dc268641ef30ec45575a83f2c4826dee807d4edb395f0d05a77a618ae56dbaa3.c] Error 1
+make: *** Waiting for unfinished jobs....

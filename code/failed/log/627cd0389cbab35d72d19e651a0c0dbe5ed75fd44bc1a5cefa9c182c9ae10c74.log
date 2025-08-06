@@ -1,0 +1,24 @@
+/tmp/modwork_fkR0Yz
+Mod files: "./627cd0389cbab35d72d19e651a0c0dbe5ed75fd44bc1a5cefa9c182c9ae10c74.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../627cd0389cbab35d72d19e651a0c0dbe5ed75fd44bc1a5cefa9c182c9ae10c74.mod
+Translating 627cd0389cbab35d72d19e651a0c0dbe5ed75fd44bc1a5cefa9c182c9ae10c74.mod into /tmp/modwork_fkR0Yz/x86_64/627cd0389cbab35d72d19e651a0c0dbe5ed75fd44bc1a5cefa9c182c9ae10c74.c
+Notice: Assignment to the GLOBAL variable, "Rtau_a", is not thread safe
+Notice: Assignment to the GLOBAL variable, "Rinf_a", is not thread safe
+ -> [32mCompiling[0m 627cd0389cbab35d72d19e651a0c0dbe5ed75fd44bc1a5cefa9c182c9ae10c74.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+Traceback (most recent call last):
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 274, in <module>
+    results = run_sim(mod_file_path, voltage, doplot=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 57, in run_sim
+    raise ValueError(f"SUFFIX not found in {mod_file_path}")
+ValueError: SUFFIX not found in /gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/nmodl/627cd0389cbab35d72d19e651a0c0dbe5ed75fd44bc1a5cefa9c182c9ae10c74.mod

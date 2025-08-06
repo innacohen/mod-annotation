@@ -1,0 +1,22 @@
+/tmp/modwork_ZGm8vf
+Mod files: "./774c179c32cd37b0cdc1f860263e145e47755e87f268fa1bff85f1578c0cc47d.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../774c179c32cd37b0cdc1f860263e145e47755e87f268fa1bff85f1578c0cc47d.mod
+Translating 774c179c32cd37b0cdc1f860263e145e47755e87f268fa1bff85f1578c0cc47d.mod into /tmp/modwork_ZGm8vf/x86_64/774c179c32cd37b0cdc1f860263e145e47755e87f268fa1bff85f1578c0cc47d.c
+Thread Safe
+Warning: Default 2 of PARAMETER cal2o will be ignored and set by NEURON.
+Warning: Default 5e-05 of PARAMETER cal2i will be ignored and set by NEURON.
+Warning: Default 2 of PARAMETER cal1o will be ignored and set by NEURON.
+Warning: Default 5e-05 of PARAMETER cal1i will be ignored and set by NEURON.
+ -> [32mCompiling[0m 774c179c32cd37b0cdc1f860263e145e47755e87f268fa1bff85f1578c0cc47d.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+cal1_ion USEION CHARGE (or VALENCE) must be defined in
+at least one model using this ion

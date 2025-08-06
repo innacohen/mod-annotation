@@ -1,0 +1,24 @@
+/tmp/modwork_WUKAIQ
+Mod files: "./24c80386c55da549532b5cb03ab735f76fdbe7807203ca04dbe9a39781c5e049.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../24c80386c55da549532b5cb03ab735f76fdbe7807203ca04dbe9a39781c5e049.mod
+Translating 24c80386c55da549532b5cb03ab735f76fdbe7807203ca04dbe9a39781c5e049.mod into /tmp/modwork_WUKAIQ/x86_64/24c80386c55da549532b5cb03ab735f76fdbe7807203ca04dbe9a39781c5e049.c
+Notice: Use of POINTER is not thread safe.
+NEURON's CVode method ignores conservation
+ -> [32mCompiling[0m 24c80386c55da549532b5cb03ab735f76fdbe7807203ca04dbe9a39781c5e049.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+Traceback (most recent call last):
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 274, in <module>
+    results = run_sim(mod_file_path, voltage, doplot=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 57, in run_sim
+    raise ValueError(f"SUFFIX not found in {mod_file_path}")
+ValueError: SUFFIX not found in /gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/nmodl/24c80386c55da549532b5cb03ab735f76fdbe7807203ca04dbe9a39781c5e049.mod

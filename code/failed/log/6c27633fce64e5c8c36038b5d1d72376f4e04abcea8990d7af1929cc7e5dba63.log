@@ -1,0 +1,12 @@
+/tmp/modwork_ywFohB
+Mod files: "./6c27633fce64e5c8c36038b5d1d72376f4e04abcea8990d7af1929cc7e5dba63.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../6c27633fce64e5c8c36038b5d1d72376f4e04abcea8990d7af1929cc7e5dba63.mod
+Translating 6c27633fce64e5c8c36038b5d1d72376f4e04abcea8990d7af1929cc7e5dba63.mod into /tmp/modwork_ywFohB/x86_64/6c27633fce64e5c8c36038b5d1d72376f4e04abcea8990d7af1929cc7e5dba63.c
+Couldn't open: units.inc
+Couldn't open units.inc
+make: *** [makemod2c_inc:3: 6c27633fce64e5c8c36038b5d1d72376f4e04abcea8990d7af1929cc7e5dba63.c] Error 1
+make: *** Waiting for unfinished jobs....

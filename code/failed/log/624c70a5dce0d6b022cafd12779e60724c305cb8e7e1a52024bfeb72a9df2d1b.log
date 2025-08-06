@@ -1,0 +1,23 @@
+/tmp/modwork_9VHrAv
+Mod files: "./624c70a5dce0d6b022cafd12779e60724c305cb8e7e1a52024bfeb72a9df2d1b.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../624c70a5dce0d6b022cafd12779e60724c305cb8e7e1a52024bfeb72a9df2d1b.mod
+Translating 624c70a5dce0d6b022cafd12779e60724c305cb8e7e1a52024bfeb72a9df2d1b.mod into /tmp/modwork_9VHrAv/x86_64/624c70a5dce0d6b022cafd12779e60724c305cb8e7e1a52024bfeb72a9df2d1b.c
+Notice: runge is not thread safe. Complain to Hines
+ -> [32mCompiling[0m 624c70a5dce0d6b022cafd12779e60724c305cb8e7e1a52024bfeb72a9df2d1b.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+Traceback (most recent call last):
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 274, in <module>
+    results = run_sim(mod_file_path, voltage, doplot=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 57, in run_sim
+    raise ValueError(f"SUFFIX not found in {mod_file_path}")
+ValueError: SUFFIX not found in /gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/nmodl/624c70a5dce0d6b022cafd12779e60724c305cb8e7e1a52024bfeb72a9df2d1b.mod

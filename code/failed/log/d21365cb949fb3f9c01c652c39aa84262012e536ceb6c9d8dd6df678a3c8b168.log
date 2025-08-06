@@ -1,0 +1,12 @@
+/tmp/modwork_j86K98
+Mod files: "./d21365cb949fb3f9c01c652c39aa84262012e536ceb6c9d8dd6df678a3c8b168.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../d21365cb949fb3f9c01c652c39aa84262012e536ceb6c9d8dd6df678a3c8b168.mod
+Translating d21365cb949fb3f9c01c652c39aa84262012e536ceb6c9d8dd6df678a3c8b168.mod into /tmp/modwork_j86K98/x86_64/d21365cb949fb3f9c01c652c39aa84262012e536ceb6c9d8dd6df678a3c8b168.c
+Couldn't open: netrand.inc
+Couldn't open netrand.inc
+make: *** [makemod2c_inc:3: d21365cb949fb3f9c01c652c39aa84262012e536ceb6c9d8dd6df678a3c8b168.c] Error 1
+make: *** Waiting for unfinished jobs....

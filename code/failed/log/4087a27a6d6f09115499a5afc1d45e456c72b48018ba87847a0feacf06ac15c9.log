@@ -1,0 +1,16 @@
+/tmp/modwork_e0cXcm
+Mod files: "./4087a27a6d6f09115499a5afc1d45e456c72b48018ba87847a0feacf06ac15c9.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../4087a27a6d6f09115499a5afc1d45e456c72b48018ba87847a0feacf06ac15c9.mod
+Translating 4087a27a6d6f09115499a5afc1d45e456c72b48018ba87847a0feacf06ac15c9.mod into /tmp/modwork_e0cXcm/x86_64/4087a27a6d6f09115499a5afc1d45e456c72b48018ba87847a0feacf06ac15c9.c
+Thread Safe
+ -> [32mCompiling[0m 4087a27a6d6f09115499a5afc1d45e456c72b48018ba87847a0feacf06ac15c9.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
