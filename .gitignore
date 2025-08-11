@@ -7,3 +7,7 @@ data/
 # Ignore temporary or notebook checkpoint files
 *.ipynb_checkpoints/
 
+# Ignore these folders too
+slurm/*
+logs/*
+

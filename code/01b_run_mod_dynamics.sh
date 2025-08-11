@@ -5,7 +5,6 @@
 modroot="/vast/palmer/scratch/mcdougal/imc33/mod-extract/data/raw/nmodl"
 #script_path="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py"
 script_path="/vast/palmer/scratch/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py"
-
 #logroot="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/logs"
 logroot="/vast/palmer/scratch/mcdougal/imc33/mod-extract/logs"
 
