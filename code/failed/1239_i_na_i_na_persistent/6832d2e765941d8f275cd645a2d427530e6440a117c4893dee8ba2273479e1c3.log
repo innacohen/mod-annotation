@@ -1,0 +1,12 @@
+/tmp/modwork_gOzoTD
+Mod files: "./6832d2e765941d8f275cd645a2d427530e6440a117c4893dee8ba2273479e1c3.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../6832d2e765941d8f275cd645a2d427530e6440a117c4893dee8ba2273479e1c3.mod
+Translating 6832d2e765941d8f275cd645a2d427530e6440a117c4893dee8ba2273479e1c3.mod into /tmp/modwork_gOzoTD/x86_64/6832d2e765941d8f275cd645a2d427530e6440a117c4893dee8ba2273479e1c3.c
+Couldn't open: bg_cvode.inc
+Couldn't open bg_cvode.inc
+make: *** [makemod2c_inc:3: 6832d2e765941d8f275cd645a2d427530e6440a117c4893dee8ba2273479e1c3.c] Error 1
+make: *** Waiting for unfinished jobs....

@@ -1,0 +1,12 @@
+/tmp/modwork_sax0UF
+Mod files: "./d607448500d0851557f3aedbb2d58d35d22cba228d6dae843cc147d0f964a705.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../d607448500d0851557f3aedbb2d58d35d22cba228d6dae843cc147d0f964a705.mod
+Translating d607448500d0851557f3aedbb2d58d35d22cba228d6dae843cc147d0f964a705.mod into /tmp/modwork_sax0UF/x86_64/d607448500d0851557f3aedbb2d58d35d22cba228d6dae843cc147d0f964a705.c
+Couldn't open: aux_fun.inc
+Couldn't open aux_fun.inc
+make: *** [makemod2c_inc:3: d607448500d0851557f3aedbb2d58d35d22cba228d6dae843cc147d0f964a705.c] Error 1
+make: *** Waiting for unfinished jobs....

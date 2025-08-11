@@ -1,0 +1,31 @@
+/tmp/modwork_oba5Qj
+Mod files: "./70093e16fbd084a2662d545dd35a3475c477886410c60865d0894ff158aff169.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../70093e16fbd084a2662d545dd35a3475c477886410c60865d0894ff158aff169.mod
+Translating 70093e16fbd084a2662d545dd35a3475c477886410c60865d0894ff158aff169.mod into /tmp/modwork_oba5Qj/x86_64/70093e16fbd084a2662d545dd35a3475c477886410c60865d0894ff158aff169.c
+Notice: Use of POINTER is not thread safe.
+Notice: Assignment to the GLOBAL variable, "mtau", is not thread safe
+Notice: Assignment to the GLOBAL variable, "minf", is not thread safe
+Warning: Default 2 of PARAMETER cao will be ignored and set by NEURON.
+Warning: Default 1e-05 of PARAMETER cai will be ignored and set by NEURON.
+ -> [32mCompiling[0m 70093e16fbd084a2662d545dd35a3475c477886410c60865d0894ff158aff169.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+Traceback (most recent call last):
+  File "/vast/palmer/scratch/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 274, in <module>
+    results = run_sim(mod_file_path, voltage, doplot=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/vast/palmer/scratch/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 71, in run_sim
+    baseline_temp = get_baseline_temperature(mod_file_path)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/vast/palmer/scratch/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 25, in get_baseline_temperature
+    baseline = float(number) if sign == '-' else -float(number)
+                                                  ^^^^^^^^^^^^^
+ValueError: could not convert string to float: '+'

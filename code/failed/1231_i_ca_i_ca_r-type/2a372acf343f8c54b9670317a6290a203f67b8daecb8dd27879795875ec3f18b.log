@@ -1,0 +1,16 @@
+/tmp/modwork_pIXV9t
+Mod files: "./2a372acf343f8c54b9670317a6290a203f67b8daecb8dd27879795875ec3f18b.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../2a372acf343f8c54b9670317a6290a203f67b8daecb8dd27879795875ec3f18b.mod
+Translating 2a372acf343f8c54b9670317a6290a203f67b8daecb8dd27879795875ec3f18b.mod into /tmp/modwork_pIXV9t/x86_64/2a372acf343f8c54b9670317a6290a203f67b8daecb8dd27879795875ec3f18b.c
+Notice: Use of POINTER is not thread safe.
+ -> [32mCompiling[0m 2a372acf343f8c54b9670317a6290a203f67b8daecb8dd27879795875ec3f18b.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.

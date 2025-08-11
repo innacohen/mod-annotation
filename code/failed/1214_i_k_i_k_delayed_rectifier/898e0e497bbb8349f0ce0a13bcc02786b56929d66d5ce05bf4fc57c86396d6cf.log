@@ -1,0 +1,12 @@
+/tmp/modwork_ON5GuA
+Mod files: "./898e0e497bbb8349f0ce0a13bcc02786b56929d66d5ce05bf4fc57c86396d6cf.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../898e0e497bbb8349f0ce0a13bcc02786b56929d66d5ce05bf4fc57c86396d6cf.mod
+Translating 898e0e497bbb8349f0ce0a13bcc02786b56929d66d5ce05bf4fc57c86396d6cf.mod into /tmp/modwork_ON5GuA/x86_64/898e0e497bbb8349f0ce0a13bcc02786b56929d66d5ce05bf4fc57c86396d6cf.c
+Couldn't open: bg.inc
+Couldn't open bg.inc
+make: *** [makemod2c_inc:3: 898e0e497bbb8349f0ce0a13bcc02786b56929d66d5ce05bf4fc57c86396d6cf.c] Error 1
+make: *** Waiting for unfinished jobs....

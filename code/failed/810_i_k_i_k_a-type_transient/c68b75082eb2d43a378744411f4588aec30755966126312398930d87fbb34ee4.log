@@ -1,0 +1,34 @@
+/tmp/modwork_vvCtW7
+Mod files: "./c68b75082eb2d43a378744411f4588aec30755966126312398930d87fbb34ee4.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../c68b75082eb2d43a378744411f4588aec30755966126312398930d87fbb34ee4.mod
+Translating c68b75082eb2d43a378744411f4588aec30755966126312398930d87fbb34ee4.mod into /tmp/modwork_vvCtW7/x86_64/c68b75082eb2d43a378744411f4588aec30755966126312398930d87fbb34ee4.c
+Notice: Assignment to the GLOBAL variable, "ktau", is not thread safe
+Notice: Assignment to the GLOBAL variable, "kinf", is not thread safe
+Notice: Assignment to the GLOBAL variable, "ntau", is not thread safe
+Notice: Assignment to the GLOBAL variable, "ninf", is not thread safe
+Warning: Default -70 of PARAMETER ek will be ignored and set by NEURON.
+ -> [32mCompiling[0m c68b75082eb2d43a378744411f4588aec30755966126312398930d87fbb34ee4.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+NEURON: table not specified in hoc_func_table
+ near line 0
+ ^
+        finitialize(-65)
+temperature = 6.3, mechanism type = density
+temperature = 6.3
+Traceback (most recent call last):
+  File "/vast/palmer/scratch/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 274, in <module>
+    results = run_sim(mod_file_path, voltage, doplot=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/vast/palmer/scratch/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 87, in run_sim
+    h.finitialize(-65)  # mV
+    ^^^^^^^^^^^^^^^^^^
+RuntimeError: hocobj_call error

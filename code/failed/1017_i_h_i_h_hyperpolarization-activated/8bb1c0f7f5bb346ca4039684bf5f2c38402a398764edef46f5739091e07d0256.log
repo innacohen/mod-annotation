@@ -1,0 +1,12 @@
+/tmp/modwork_S248iG
+Mod files: "./8bb1c0f7f5bb346ca4039684bf5f2c38402a398764edef46f5739091e07d0256.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../8bb1c0f7f5bb346ca4039684bf5f2c38402a398764edef46f5739091e07d0256.mod
+Translating 8bb1c0f7f5bb346ca4039684bf5f2c38402a398764edef46f5739091e07d0256.mod into /tmp/modwork_S248iG/x86_64/8bb1c0f7f5bb346ca4039684bf5f2c38402a398764edef46f5739091e07d0256.c
+Couldn't open: Unit.inc
+Couldn't open Unit.inc
+make: *** [makemod2c_inc:3: 8bb1c0f7f5bb346ca4039684bf5f2c38402a398764edef46f5739091e07d0256.c] Error 1
+make: *** Waiting for unfinished jobs....
