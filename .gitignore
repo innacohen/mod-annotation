@@ -10,4 +10,5 @@ data/
 # Ignore these folders too
 slurm/*
 logs/*
+download_logs/
 
