@@ -1,0 +1,16 @@
+/tmp/modwork_zg5MQI
+Mod files: "./75e5ac8edc981ecb891a4d051867e9317dc5c7736acab3b9b7a3ce90344519a6.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../75e5ac8edc981ecb891a4d051867e9317dc5c7736acab3b9b7a3ce90344519a6.mod
+Translating 75e5ac8edc981ecb891a4d051867e9317dc5c7736acab3b9b7a3ce90344519a6.mod into /tmp/modwork_zg5MQI/x86_64/75e5ac8edc981ecb891a4d051867e9317dc5c7736acab3b9b7a3ce90344519a6.c
+Notice: Use of POINTER is not thread safe.
+ -> [32mCompiling[0m 75e5ac8edc981ecb891a4d051867e9317dc5c7736acab3b9b7a3ce90344519a6.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.

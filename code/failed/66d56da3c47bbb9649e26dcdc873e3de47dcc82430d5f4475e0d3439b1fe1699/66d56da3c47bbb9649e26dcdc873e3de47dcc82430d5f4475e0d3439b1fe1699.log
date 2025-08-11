@@ -1,0 +1,18 @@
+/tmp/modwork_8sxMvt
+Mod files: "./66d56da3c47bbb9649e26dcdc873e3de47dcc82430d5f4475e0d3439b1fe1699.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../66d56da3c47bbb9649e26dcdc873e3de47dcc82430d5f4475e0d3439b1fe1699.mod
+Translating 66d56da3c47bbb9649e26dcdc873e3de47dcc82430d5f4475e0d3439b1fe1699.mod into /tmp/modwork_8sxMvt/x86_64/66d56da3c47bbb9649e26dcdc873e3de47dcc82430d5f4475e0d3439b1fe1699.c
+Thread Safe
+ -> [32mCompiling[0m 66d56da3c47bbb9649e26dcdc873e3de47dcc82430d5f4475e0d3439b1fe1699.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+caL_ion USEION CHARGE (or VALENCE) must be defined in
+at least one model using this ion

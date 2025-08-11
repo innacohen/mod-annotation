@@ -1,0 +1,29 @@
+/tmp/modwork_zRlm6I
+Mod files: "./9d9df3bbf7236fc14dc7be5c94e49ae802c6baab52e90561a98eac1f513ff868.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../9d9df3bbf7236fc14dc7be5c94e49ae802c6baab52e90561a98eac1f513ff868.mod
+Translating 9d9df3bbf7236fc14dc7be5c94e49ae802c6baab52e90561a98eac1f513ff868.mod into /tmp/modwork_zRlm6I/x86_64/9d9df3bbf7236fc14dc7be5c94e49ae802c6baab52e90561a98eac1f513ff868.c
+Notice: Assignment to the GLOBAL variable, "oinf", is not thread safe
+Notice: Assignment to the GLOBAL variable, "tau", is not thread safe
+Warning: Default 20 of PARAMETER celsius will be ignored and set by NEURON.
+ -> [32mCompiling[0m 9d9df3bbf7236fc14dc7be5c94e49ae802c6baab52e90561a98eac1f513ff868.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+Traceback (most recent call last):
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 274, in <module>
+    results = run_sim(mod_file_path, voltage, doplot=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 71, in run_sim
+    baseline_temp = get_baseline_temperature(mod_file_path)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 25, in get_baseline_temperature
+    baseline = float(number) if sign == '-' else -float(number)
+                                                  ^^^^^^^^^^^^^
+ValueError: could not convert string to float: '+'

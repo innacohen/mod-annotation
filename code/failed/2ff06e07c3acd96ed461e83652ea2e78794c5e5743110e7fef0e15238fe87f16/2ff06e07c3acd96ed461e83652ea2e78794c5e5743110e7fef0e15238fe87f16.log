@@ -1,0 +1,33 @@
+/tmp/modwork_ADdr6M
+Mod files: "./2ff06e07c3acd96ed461e83652ea2e78794c5e5743110e7fef0e15238fe87f16.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../2ff06e07c3acd96ed461e83652ea2e78794c5e5743110e7fef0e15238fe87f16.mod
+Translating 2ff06e07c3acd96ed461e83652ea2e78794c5e5743110e7fef0e15238fe87f16.mod into /tmp/modwork_ADdr6M/x86_64/2ff06e07c3acd96ed461e83652ea2e78794c5e5743110e7fef0e15238fe87f16.c
+Thread Safe
+ -> [32mCompiling[0m 2ff06e07c3acd96ed461e83652ea2e78794c5e5743110e7fef0e15238fe87f16.c
+ => [32mLINKING[0m shared library ./libnrnmech.so
+ => [32mLINKING[0m executable ./special LDFLAGS are:    -pthread /home/imc33/.conda/envs/nn/lib/libreadline.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libncurses.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libform.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libX11.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib /home/imc33/.conda/envs/nn/lib/libXext.so -Wl,-rpath,/home/imc33/.conda/envs/nn/lib
+Successfully created x86_64/special
+Compilation succeeded. Running simulation...
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+NEURON: table not specified in hoc_func_table
+ near line 0
+ ^
+        fadvance()
+      advance()
+    step()
+  continuerun(3000)
+temperature = 6.3, mechanism type = density
+temperature = 6.3
+Traceback (most recent call last):
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 274, in <module>
+    results = run_sim(mod_file_path, voltage, doplot=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py", line 88, in run_sim
+    h.continuerun(3000)  # ms
+    ^^^^^^^^^^^^^^^^^^^
+RuntimeError: hocobj_call error

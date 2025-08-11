@@ -1,0 +1,12 @@
+/tmp/modwork_TFXemn
+Mod files: "./69b9b260751b45969472fb5738ede4cccd302644ca34b26be1742b798b452963.mod"
+
+Creating 'x86_64' directory for .o files.
+
+ -> [32mCompiling[0m mod_func.cpp
+ -> [32mNMODL[0m ../69b9b260751b45969472fb5738ede4cccd302644ca34b26be1742b798b452963.mod
+Translating 69b9b260751b45969472fb5738ede4cccd302644ca34b26be1742b798b452963.mod into /tmp/modwork_TFXemn/x86_64/69b9b260751b45969472fb5738ede4cccd302644ca34b26be1742b798b452963.c
+Couldn't open: ghk.inc
+Couldn't open ghk.inc
+make: *** [makemod2c_inc:3: 69b9b260751b45969472fb5738ede4cccd302644ca34b26be1742b798b452963.c] Error 1
+make: *** Waiting for unfinished jobs....
