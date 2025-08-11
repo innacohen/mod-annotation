@@ -1,9 +1,14 @@
 #!/bin/bash
 
 # Set paths
-modroot="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/nmodl"
-script_path="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py"
-logroot="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/logs"
+#modroot="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/data/raw/nmodl"
+modroot="/vast/palmer/scratch/mcdougal/imc33/mod-extract/data/raw/nmodl"
+#script_path="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py"
+script_path="/vast/palmer/scratch/mcdougal/imc33/mod-extract/code/_get_mod_dynamics.py"
+
+#logroot="/gpfs/gibbs/project/mcdougal/imc33/mod-extract/logs"
+logroot="/vast/palmer/scratch/mcdougal/imc33/mod-extract/logs"
+
 
 mkdir -p "$logroot"
 summary_log="$logroot/run_log.txt"
