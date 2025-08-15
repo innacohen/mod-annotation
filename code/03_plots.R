@@ -1,9 +1,6 @@
 
 
-
-
 # ARROWS ------------------------------------------------------------------
-
 
 
 library(tidyverse)
@@ -82,7 +79,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
 
 
 
-# VERSION 3 ---------------------------------------------------------------
+# VERSION 2 ---------------------------------------------------------------
 
 
 library(tidyverse)
