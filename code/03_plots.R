@@ -832,3 +832,100 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
     strip.text.y = element_blank(),
     legend.position = "none"
   )
+
+
+# VERSION 4 ---------------------------------------------------------------
+library(tidyverse)
+
+# --- Read and prep data ---
+df <- read_csv("predictions_combined.csv", show_col_types = FALSE)
+
+# Family inference
+infer_family <- function(s) {
+  s <- trimws(s)
+  if (grepl("^I\\s*Other", s, ignore.case = TRUE)) {
+    "Other"
+  } else if (grepl("(^R\\b|Receptor)", s, ignore.case = TRUE)) {
+    "Receptors"
+  } else if (grepl("I\\s*H\\b|Ih\\b|HCN|H-?current", s, ignore.case = TRUE)) {
+    "H-Current"
+  } else if (grepl("\\bK\\b|Potassium", s, ignore.case = TRUE)) {
+    "K"
+  } else if (grepl("\\bNa\\b|Sodium", s, ignore.case = TRUE)) {
+    "Na"
+  } else if (grepl("\\bCa\\b|Calcium", s, ignore.case = TRUE)) {
+    "Calcium"
+  } else if (grepl("\\bNeither\\b", s, ignore.case = TRUE)) {
+    "Neither"
+  } else {
+    "Other"
+  }
+}
+
+# Build sensitivity data
+sens_long <- bind_rows(
+  df %>%
+    group_by(true_subtype) %>%
+    summarise(correct = sum(xgb_subtype_match, na.rm = TRUE),
+              total = sum(!is.na(xgb_subtype_match)),
+              .groups = "drop") %>%
+    mutate(model = "XGB"),
+  df %>%
+    group_by(true_subtype) %>%
+    summarise(correct = sum(gpt_subtype_match, na.rm = TRUE),
+              total = sum(!is.na(gpt_subtype_match)),
+              .groups = "drop") %>%
+    mutate(model = "GPT")
+) %>%
+  mutate(
+    sensitivity = correct / total,
+    family = map_chr(true_subtype, infer_family)
+  )
+
+# Compute winner margin: XGB - GPT
+winner_df <- sens_long %>%
+  select(true_subtype, model, sensitivity, family) %>%
+  pivot_wider(names_from = model, values_from = sensitivity) %>%
+  mutate(
+    diff = XGB - GPT,
+    winner = case_when(
+      diff > 0 ~ "XGB",   # XGB ahead
+      diff < 0 ~ "GPT",   # GPT ahead
+      TRUE ~ "Tie"
+    )
+  )
+
+# Order subtypes by family then abs(diff)
+family_order <- c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither")
+winner_df <- winner_df %>%
+  mutate(family = factor(family, levels = family_order)) %>%
+  group_by(family) %>%
+  arrange(desc(abs(diff)), .by_group = TRUE) %>%
+  mutate(true_subtype = factor(true_subtype, levels = rev(unique(true_subtype)))) %>%
+  ungroup()
+
+# Colors: Positive = Blue (XGB ahead), Negative = Red (GPT ahead), Tie = Grey
+winner_colors <- c("XGB" = "steelblue", "GPT" = "firebrick", "Tie" = "grey50")
+
+# --- Bar plot ---
+ggplot(winner_df, aes(x = diff, y = true_subtype, fill = winner)) +
+  geom_col() +
+  geom_text(aes(label = paste0(round(diff * 100), "%")),
+            hjust = ifelse(winner_df$diff > 0, -0.3, 1.3),
+            color = "black", size = 3) +
+  scale_fill_manual(values = winner_colors, guide = "none") +
+  geom_vline(xintercept = 0, color = "black") +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1),
+                     limits = c(min(winner_df$diff) - 0.05, max(winner_df$diff) + 0.05)) +
+  facet_grid(family ~ ., scales = "free_y", space = "free_y") +
+  labs(
+    title = "Winner Margin by Subtype",
+    subtitle = "Positive (blue) = XGB higher sensitivity; Negative (red) = GPT higher sensitivity",
+    x = "Difference in Sensitivity (XGB − GPT)",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    strip.text.y = element_blank()
+  )
