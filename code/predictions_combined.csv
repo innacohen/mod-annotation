@@ -4,8 +4,8 @@ dc8c2c67d9c97e91bc6020f802df1c6c45677a85b01bf78a924057a860c4b66d,I K,I K (Rare),
 b37d9a9187832d72838962e972a6f3c6639a41c01755f73efa050ec4d9997449,I Ca,I Ca (HVA),I Ca,I Ca (HVA),True,True,I Ca,I Ca (HVA),True,True
 a1baff83bc033fbbfd90d7f0343d4097f01b9a75957e0a1c07ec6ddc5e45c0dd,Z Neither,Z Neither,Z Neither,Z Neither,True,True,Neither,Z Neither,False,True
 3c251d45f8747a637de413c987d0c55aa3cd90fa9564d4db4c2c895592123ef1,I K,I K (A-type),I K,I K (A-type),True,True,I K,I K (A-type),True,True
-2648e4c41271dc5141dbf0faff9ed9d5c5672b88a006103531a7d374f0184d9d,R Glutamate,R Glutamate (NMDA),R Glutamate,R Glutamate (AMPA),True,False,I Ca,I Ca (Rare),False,False
-2648e4c41271dc5141dbf0faff9ed9d5c5672b88a006103531a7d374f0184d9d,R Glutamate,R Glutamate (NMDA),R Glutamate,R Glutamate (AMPA),True,False,R Glutamate,R Glutamate (NMDA),True,True
+2648e4c41271dc5141dbf0faff9ed9d5c5672b88a006103531a7d374f0184d9d,R Glutamate,R Glutamate (NMDA),R Glutamate,R Glutamate (NMDA),True,True,I Ca,I Ca (Rare),False,False
+2648e4c41271dc5141dbf0faff9ed9d5c5672b88a006103531a7d374f0184d9d,R Glutamate,R Glutamate (NMDA),R Glutamate,R Glutamate (NMDA),True,True,R Glutamate,R Glutamate (NMDA),True,True
 8ae54eba01f3e9fa64a79e7658052074d55c75e8c98b80e13b4ea7d89a854ea0,R Glutamate,R Glutamate (AMPA),R Glutamate,R Glutamate (AMPA),True,True,R Glutamate,R Glutamate (AMPA),True,True
 8ae54eba01f3e9fa64a79e7658052074d55c75e8c98b80e13b4ea7d89a854ea0,R Glutamate,R Glutamate (AMPA),R Glutamate,R Glutamate (AMPA),True,True,I Na,I Na (General),False,False
 0bea7e225ad7559c1ed547db513cdca424434e10ae21fb1b2fce32cb12e5a25a,I Na,I Na (Transient),I Na,I Na (Transient),True,True,I Na,I Na (Transient),True,True
@@ -19,7 +19,7 @@ f5ce72aa7394f8b1da86d1aa30a76193d9219901c4be3be528c4513723b76c59,Z Neither,Z Nei
 a6c525655c1281dcd9788c46e215de0ffb4462d4128a72aab43b46d133ff7e05,I K,I K (A-type),I K,I K (A-type),True,True,I K,I K (A-type),True,True
 15aa4f6ab70a371ce8abe0dcfad42b1134f3afaff180324a92c065f33d63ee54,I Other,I Other (Rare),R Glutamate,R Glutamate (NMDA),False,False,I Other,I Other (Rare),True,True
 b34b72146b72c36352a2b6890524600a753cb8ef528020d4dd7151cabe91f341,Z Neither,Z Neither,Z Neither,Z Neither,True,True,Neither,Z Neither,False,True
-b8fabb50c57e580973c328e846f75b7e85724ca4503bb191d90a945e25dc9fbf,I K,I K (Rare),I K,I K (Rare),True,True,Neither,Z Neither,False,False
+b8fabb50c57e580973c328e846f75b7e85724ca4503bb191d90a945e25dc9fbf,I K,I K (Rare),I K,I K (Delayed Rectifier),True,False,Neither,Z Neither,False,False
 fdea9447c484d562f97f8f8738fa8301efa347782beb24aeb8d27b5c5493c999,I H,I H,I H,I H,True,True,I H,I H,True,True
 158908948c7b908013aa45040718b5fd6867aebe9732a8dae1a1f07b7e8d45a4,I Ca,I Ca (HVA),I Ca,I Ca (HVA),True,True,I Ca,I Ca (HVA),True,True
 42176a75b0c5019dd7dee67b0d4232a04c1dc703a3d77c34ed2c59c7aa9da0e4,Z Neither,Z Neither,Z Neither,Z Neither,True,True,Neither,Z Neither,False,True
@@ -30,8 +30,8 @@ b84f6b0fe144e8460423c4deb55d877da94496e89de1355464f09470e5ba1ad4,R Glutamate,R G
 04e7817dca98f2cd1c234153a9f79a64e10967740b96f4243d0deeec08c57025,I K,I K (Delayed Rectifier),I K,I K (Delayed Rectifier),True,True,I K,I K (Delayed Rectifier),True,True
 96526eb4a8f585ecbb64d59a643b0e83bfdc195f8bba6a5b145d532087690396,Z Neither,Z Neither,Z Neither,Z Neither,True,True,Neither,Z Neither,False,True
 9bbabc95794782664eff3e6318db36ad8811c38572b48e7791075d01be310307,I K,I K (Delayed Rectifier),I K,I K (A-type),True,False,Neither,Z Neither,False,False
-564ff0ce428f1421d94c81754cdd6db15816259e67823e0b85e89ebd8d077065,Z Neither,Z Neither,I K,I K (A-type),False,False,Neither,Z Neither,False,True
-d5497845e38ceda068ed99292a1d5d20e1be2e429131fee852aa811e0062e6c8,I Ca,I Ca (HVA),I Ca,I Ca (T-type LT),True,False,I Ca,I Ca (HVA),True,True
+564ff0ce428f1421d94c81754cdd6db15816259e67823e0b85e89ebd8d077065,Z Neither,Z Neither,Z Neither,Z Neither,True,True,Neither,Z Neither,False,True
+d5497845e38ceda068ed99292a1d5d20e1be2e429131fee852aa811e0062e6c8,I Ca,I Ca (HVA),I Ca,I Ca (HVA),True,True,I Ca,I Ca (HVA),True,True
 cba8b60f90998d77ac345a20d4c85e839c63cb1fbf91b7a99448d6846852745e,I K,I K (M-type),I K,I K (M-type),True,True,I K,I K (M-type),True,True
 4fd0981b98940d4e2e40183cf1df72193747615ec838447a290e929066b1de1c,Z Neither,Z Neither,Z Neither,Z Neither,True,True,I Ca,I Ca (Rare),False,False
 651d509cbc9f3a364ef716a5891e7d544ebc82b1f1c2fd156d306a2d70b42a1b,Z Neither,Z Neither,Z Neither,Z Neither,True,True,I Ca,I Ca (Rare),False,False
@@ -42,7 +42,7 @@ ace1c00a7e25261124d5fefdbc937be0338b2ef6ff9f84655da6b3c2f8d3a9cb,I K,I K (Delaye
 511adf6257535385084b693f9f35c361149bb78ba16f6a86747259262bd3c2d7,Z Neither,Z Neither,Z Neither,Z Neither,True,True,I Ca,I Ca (Rare),False,False
 f52d652b4bec9675bf2192f15d98a4170edbf1c2465972c21db889908a1f4db4,I Ca,I Ca (T-type LT),I Ca,I Ca (T-type LT),True,True,I Ca,I Ca (T-type LT),True,True
 97da8dde574cd55b492fe5f59e0e7d7cf6e1aba6173750d40a9d2fc7aad3b705,Z Neither,Z Neither,Z Neither,Z Neither,True,True,I Ca,I Ca (Rare),False,False
-0e53f5bc020003b3628388521cd79536cbc07c82eedd1be5e10751dd6b40e20f,I K,I K (Delayed Rectifier),I K,I K (M-type),True,False,I K,I K (Delayed Rectifier),True,True
+0e53f5bc020003b3628388521cd79536cbc07c82eedd1be5e10751dd6b40e20f,I K,I K (Delayed Rectifier),I K,I K (Delayed Rectifier),True,True,I K,I K (Delayed Rectifier),True,True
 f74f5b2f0ac07acc00744cada98c8a5904e254b3006908a71beb7f45c883484a,I Ca,I Ca (T-type LT),I Ca,I Ca (T-type LT),True,True,I Ca,I Ca (T-type LT),True,True
 1a3f36fe4c4ecfbb84a8240305bdaa02a8cea5b31fb0626a56b9ebf2f2757d93,Z Neither,Z Neither,Z Neither,Z Neither,True,True,I Ca,I Ca (Rare),False,False
 f9e79e04e30cf15e0d66b0969bdfcd1bae1788dbc15e0438c205411cbb9a5643,Z Neither,Z Neither,Z Neither,Z Neither,True,True,Neither,Z Neither,False,True
@@ -54,7 +54,7 @@ fa707721ddbfe1f1a839119fe69fcbf32da0829b7ef4b4eccffe4da0f4af506a,I K,I K (A-type
 ea08fbe20fe982e7627669adaeca1244416dcc3e6c5b7e9a78081c899ad3b3e7,I Na,I Na (Transient),I Na,I Na (Transient),True,True,I Na,I Na (Transient),True,True
 b5e05ce686b2d52f426341cca08ac11489213fd1b062bc6e8df3ce2e2206e7a4,I K,I K (Ca-activated),I K,I K (Ca-activated),True,True,I K,I K (Ca-activated),True,True
 f8b9d101ded76a6c25d9744f86e95c0cdb790eed3a98dc760b58c19784666db4,I H,I H,I H,I H,True,True,I H,I H,True,True
-a6b509c9b27c6b4502300815d2710faf6ab6ed93eae4c7f5f07f13a3c8f6676d,I K,I K (Ca-activated),I Other,I Other (Rare),False,False,Neither,Z Neither,False,False
+a6b509c9b27c6b4502300815d2710faf6ab6ed93eae4c7f5f07f13a3c8f6676d,I K,I K (Ca-activated),I K,I K (Ca-activated),True,True,Neither,Z Neither,False,False
 21f80571fb6ad4a0c37851aaaeeeab3c3efa5a5bab49b26011202e672e357933,I K,I K (Delayed Rectifier),I K,I K (Delayed Rectifier),True,True,I K,I K (Delayed Rectifier),True,True
 2a89e831fca92317d4ca8f42266dacb8bcfcd149fe30542995a2a86ff7593054,I Na,I Na (Persistent),I Na,I Na (Persistent),True,True,I Na,I Na (Persistent),True,True
 a500323ca413d4399763cb4c6ffa8065e14c4194daa2b46b6636d1c036f4d2de,I K,I K (M-type),I K,I K (Delayed Rectifier),True,False,I K,I K (M-type),True,True
@@ -139,7 +139,7 @@ a955cdf1ec92e3c58189b031018621b2d61a2c18f4e3f9962e2071b261f303d4,I K,I K (Delaye
 dda7595d96a16646d41313b50bfceb6778a0c76cb650c535480bf27f3d10c1ce,I Na,I Na (Transient),I Na,I Na (Transient),True,True,I Na,I Na (Transient),True,True
 43a060c1aa5a3c67df4a1e52e6a1ea2a4ee24959af86e283eb79bf76a4bd256c,Z Neither,Z Neither,R Glutamate,R Glutamate (AMPA),False,False,R Glutamate,R Glutamate (AMPA),False,False
 283b76752385fc54a5278afec3588e1bafe91ec713d661b0bc583f429cb3e244,R Glutamate,R Glutamate (AMPA),R Glutamate,R Glutamate (AMPA),True,True,R Glutamate,R Glutamate (AMPA),True,True
-5fa8e60706ce9c74272910437fbde491b6e3a3b259fb3b3936df6b128590b0f8,I Na,I Na (Persistent),I Na,I Na (General),True,False,I Na,I Na (Persistent),True,True
+5fa8e60706ce9c74272910437fbde491b6e3a3b259fb3b3936df6b128590b0f8,I Na,I Na (Persistent),I Na,I Na (Persistent),True,True,I Na,I Na (Persistent),True,True
 8261679b54d1539a74ba45619cc7ac3b1fa8de0148b85126a94af1a5d709f68e,Z Neither,Z Neither,Z Neither,Z Neither,True,True,Neither,Z Neither,False,True
 a1577c9662b85b3948caac31cb378eddf944d1dc38106e0d637ae101700b1037,I K,I K (Rare),I K,I K (Delayed Rectifier),True,False,I K,I K (Rare),True,True
 c079f94be2f92d61be6a10d2b1f011e2a6679964bb92712d568760ad2c4169f0,I K,I K (A-type),Z Neither,Z Neither,False,False,I K,I K (A-type),True,True
@@ -148,7 +148,7 @@ b0ba70654d10d639aea9f9c655c1aae37f0f3194bed4d118abc6fe635b128b96,I Ca,I Ca (HVA)
 b408003421870590bb819f81765f2bd5b9f2f90102b5f3769ba22d9da5f755a2,I Ca,I Ca (T-type LT),I Ca,I Ca (HVA),True,False,I Ca,I Ca (T-type LT),True,True
 6c967beea674af628fb9505a42bb0ac77ba53a14dd2ad2d71fc2db5fa94a8397,I K,I K (Ca-activated),I K,I K (Ca-activated),True,True,Neither,Z Neither,False,False
 bcd979facda855ab577dc0cc18f1476bf510c7ac6b642ece1984d1e74e9d1866,I K,I K (M-type),I K,I K (Delayed Rectifier),True,False,I K,I K (M-type),True,True
-87a70885150d71aa776b55eb97f90ca00bf20c2b7639ecad8cfc838e405a22bc,I K,I K (Rare),I K,I K (Rare),True,True,I K,I K (A-type),True,False
+87a70885150d71aa776b55eb97f90ca00bf20c2b7639ecad8cfc838e405a22bc,I K,I K (Rare),I K,I K (Delayed Rectifier),True,False,I K,I K (A-type),True,False
 45ed9914b5a97f9e53684ac7aa168c722cbd7cb0f9816002568fa9fe15999577,I K,I K (Rare),I K,I K (M-type),True,False,I K,I K (Rare),True,True
 be73bccd2c9832e1a9e0b681a01a0d3d49e567d128614ffb7249fce771992bd5,I H,I H,I H,I H,True,True,I H,I H,True,True
 34114818ca5d13f438225a44721f2d011dcb0dcdb56fb23bcfcae8b552062038,I H,I H,I H,I H,True,True,I H,I H,True,True

@@ -1,9 +1,12 @@
 
 
-# ARROWS ------------------------------------------------------------------
 
 
 library(tidyverse)
+setwd("~/palmer_scratch/mod-extract/code")
+
+
+# VERSION 1 ARROWS ------------------------------------------------------------------
 
 # --- Read and prep data ---
 df <- read_csv("predictions_combined.csv", show_col_types = FALSE)
@@ -79,7 +82,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
 
 
 
-# VERSION 2A ---------------------------------------------------------------
+# VERSION 2A DUMBELL RED BLUE ---------------------------------------------------------------
 
 
 library(tidyverse)
@@ -321,7 +324,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
 
 
 
-# VERSION 3 ---------------------------------------------------------------
+# VERSION 3 NO LABEL ---------------------------------------------------------------
 
 library(tidyverse)
 
@@ -432,7 +435,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
 
 
 
-# VERSION 3B --------------------------------------------------------------
+# VERSION 3B PERCENTAGES --------------------------------------------------------------
 library(tidyverse)
 
 # --- Read and prep data ---
@@ -563,7 +566,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
 
 
 
-# VERSION 3c --------------------------------------------------------------
+# VERSION 3c NUMBERS --------------------------------------------------------------
 
 library(tidyverse)
 
@@ -704,7 +707,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
 #Winner in color; loser as hollow black circle; counts shown for each
 
 
-# VERSION 3C2 -------------------------------------------------------------
+# VERSION 3C2 BOTH -------------------------------------------------------------
 
 library(tidyverse)
 
@@ -848,7 +851,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
     x = "Sensitivity (TP %)",
     y = NULL
   ) +
-  theme_minimal(base_size = 14) +
+  theme_minimal(base_size = 20) +
   theme(
     panel.grid.major.y = element_blank(),
     panel.grid.minor.x = element_blank(),
@@ -860,22 +863,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# VERSION 3D --------------------------------------------------------------
+# VERSION 3D BOTH --------------------------------------------------------------
 library(tidyverse)
 
 # --- Read and prep data ---
@@ -1010,7 +998,7 @@ ggplot(sens_long, aes(x = sensitivity, y = true_subtype, group = true_subtype)) 
   )
 
 
-# VERSION 4 ---------------------------------------------------------------
+# WINNER MARGIN ---------------------------------------------------------------
 library(tidyverse)
 
 # --- Read and prep data ---
@@ -1088,7 +1076,7 @@ ggplot(winner_df, aes(x = diff, y = true_subtype, fill = winner)) +
   geom_col() +
   geom_text(aes(label = paste0(round(diff * 100), "%")),
             hjust = ifelse(winner_df$diff > 0, -0.3, 1.3),
-            color = "black", size = 3) +
+            color = "black", size = 5) +
   scale_fill_manual(values = winner_colors, guide = "none") +
   geom_vline(xintercept = 0, color = "black") +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1),
@@ -1100,13 +1088,51 @@ ggplot(winner_df, aes(x = diff, y = true_subtype, fill = winner)) +
     x = "Difference in Sensitivity (XGB − GPT)",
     y = NULL
   ) +
-  theme_minimal(base_size = 14) +
+  theme_minimal(base_size = 20) +
   theme(
     panel.grid.major.y = element_blank(),
     strip.text.y = element_blank()
   )
 
 #Positive (blue) = XGB higher sensitivity; Negative (red) = GPT higher sensitivity
+
+
+# TYPE FIGURE -------------------------------------------------------------
+library(tidyverse)
+library(scales)
+
+# --- Compute accuracies ---
+acc_type_xgb <- mean(df$true_type == df$xgb_pred_type, na.rm = TRUE)
+acc_type_gpt <- mean(df$true_type == df$gpt_pred_type, na.rm = TRUE)
+
+acc_sub_xgb  <- mean(df$true_subtype == df$xgb_pred_subtype, na.rm = TRUE)
+acc_sub_gpt  <- mean(df$true_subtype == df$gpt_pred_subtype, na.rm = TRUE)
+
+# --- Combine into one tibble ---
+acc_all <- tibble(
+  Level    = factor(rep(c("Type", "Subtype"), each = 2), levels = c("Type", "Subtype")),
+  Model    = factor(rep(c("XGB", "GPT"), times = 2), levels = c("XGB", "GPT")),
+  Accuracy = c(acc_type_xgb, acc_type_gpt, acc_sub_xgb, acc_sub_gpt)
+)
+
+# --- Plot ---
+ggplot(acc_all, aes(x = Level, y = Accuracy, fill = Model)) +
+  geom_col(position = position_dodge(width = 0.6), width = 0.55) +
+  geom_text(aes(label = percent(Accuracy, accuracy = 0.1), group = Model),
+            position = position_dodge(width = 0.6), vjust = -0.5, size = 8) +
+  scale_y_continuous(limits = c(0, 1), labels = percent) +
+  scale_fill_manual(values = c("XGB" = "steelblue", "GPT" = "firebrick")) +
+  labs(title = "", 
+       x = NULL, y = "Accuracy") +
+  theme_minimal(base_size = 20) +
+  theme(legend.title = element_blank(),
+        plot.title = element_text(face = "bold"))
+
+
+
+
+# OTHERS ------------------------------------------------------------------
+
 
 # PANEL PLOT --------------------------------------------------------------
 library(tidyverse)
@@ -1240,34 +1266,3 @@ p_counts + p_margin + plot_annotation(
 )
 
 
-
-# TYPE FIGURE -------------------------------------------------------------
-library(tidyverse)
-library(scales)
-
-# --- Compute accuracies ---
-acc_type_xgb <- mean(df$true_type == df$xgb_pred_type, na.rm = TRUE)
-acc_type_gpt <- mean(df$true_type == df$gpt_pred_type, na.rm = TRUE)
-
-acc_sub_xgb  <- mean(df$true_subtype == df$xgb_pred_subtype, na.rm = TRUE)
-acc_sub_gpt  <- mean(df$true_subtype == df$gpt_pred_subtype, na.rm = TRUE)
-
-# --- Combine into one tibble ---
-acc_all <- tibble(
-  Level    = factor(rep(c("Type", "Subtype"), each = 2), levels = c("Type", "Subtype")),
-  Model    = factor(rep(c("XGB", "GPT"), times = 2), levels = c("XGB", "GPT")),
-  Accuracy = c(acc_type_xgb, acc_type_gpt, acc_sub_xgb, acc_sub_gpt)
-)
-
-# --- Plot ---
-ggplot(acc_all, aes(x = Level, y = Accuracy, fill = Model)) +
-  geom_col(position = position_dodge(width = 0.6), width = 0.55) +
-  geom_text(aes(label = percent(Accuracy, accuracy = 0.1), group = Model),
-            position = position_dodge(width = 0.6), vjust = -0.5, size = 4) +
-  scale_y_continuous(limits = c(0, 1), labels = percent) +
-  scale_fill_manual(values = c("XGB" = "steelblue", "GPT" = "firebrick")) +
-  labs(title = "", 
-       x = NULL, y = "Accuracy") +
-  theme_minimal(base_size = 20) +
-  theme(legend.title = element_blank(),
-        plot.title = element_text(face = "bold"))
