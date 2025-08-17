@@ -142,7 +142,6 @@ plot_arrow <- function(
 
   
 # DUMBELL PLOT ------------------------------------------------------------
-
 plot_db <- function(
     df,
     truth_col = "true_subtype",
@@ -152,21 +151,24 @@ plot_db <- function(
     family_order = c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither"),
     order_by = c("sens_xgb", "sens_gpt", "delta", "abs_delta"),  # abs_delta = biggest gap within family
     facet_by_family = FALSE,
-    labels = c("full", "minimal"),  # NEW: control legend & facet strip labels
+    labels = c("full", "minimal"),  # control legend & facet strip labels
+    style = c("dumbbell", "winner"), # NEW: choose plot style
     title = "Subtype Sensitivity: XGB vs GPT",
     subtitle = NULL,
     x_lab = "Sensitivity (TP %)",
     y_lab = NULL,
     xgb_color = "steelblue",
     gpt_color = "firebrick",
+    tie_color = "grey50",          # NEW: color for ties (winner style)
     line_color = "#999999",
     point_outline = "#333333",
     base_size = 14
 ) {
   labels   <- match.arg(labels)
   order_by <- match.arg(order_by)
+  style    <- match.arg(style)
   
-  # per-subtype sensitivity, family, and delta
+  # per-subtype sensitivity, family, delta, winner
   sens <- df %>%
     dplyr::group_by(.data[[truth_col]]) %>%
     dplyr::summarise(
@@ -176,7 +178,12 @@ plot_db <- function(
     ) %>%
     dplyr::mutate(
       family = purrr::map_chr(.data[[truth_col]], family_fun),
-      diff   = sens_gpt - sens_xgb
+      diff   = sens_gpt - sens_xgb,
+      winner = dplyr::case_when(
+        diff > 0 ~ "GPT",
+        diff < 0 ~ "XGB",
+        TRUE     ~ "Tie"
+      )
     ) %>%
     dplyr::mutate(family = factor(.data$family, levels = family_order))
   
@@ -199,7 +206,7 @@ plot_db <- function(
       !!truth_col := factor(.data[[truth_col]], levels = rev(unique(.data[[truth_col]])))
     )
   
-  # long form for plotting
+  # long format for plotting (+ carry winner per subtype)
   sens_long <- sens %>%
     tidyr::pivot_longer(
       cols = c("sens_xgb", "sens_gpt"),
@@ -208,28 +215,60 @@ plot_db <- function(
     ) %>%
     dplyr::mutate(model = dplyr::recode(.data$model, sens_xgb = "XGB", sens_gpt = "GPT"))
   
-  # default subtitle for biggest-gap view with facets
+  # default subtitle for gap+facets
   if (is.null(subtitle) && facet_by_family && order_by == "abs_delta") {
-    subtitle <- "Ordered by biggest gap within each family"
+    subtitle <- if (style == "winner") {
+      "Winner in color; loser hollow; ties in grey — ordered by biggest gap within each family"
+    } else {
+      "Ordered by biggest gap within each family"
+    }
   }
   
+  # base plot
   p <- ggplot2::ggplot(
     sens_long,
     ggplot2::aes(x = .data$sensitivity, y = .data[[truth_col]], group = .data[[truth_col]])
   ) +
     ggplot2::geom_line(color = line_color, linewidth = 0.8) +
-    ggplot2::geom_point(
-      ggplot2::aes(fill = .data$model),
-      shape = 21, size = 4, color = point_outline, stroke = 1
-    ) +
     ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
-    ggplot2::scale_fill_manual(values = c("XGB" = xgb_color, "GPT" = gpt_color)) +
-    ggplot2::labs(title = title, subtitle = subtitle, x = x_lab, y = y_lab, fill = "Model") +
+    ggplot2::labs(title = title, subtitle = subtitle, x = x_lab, y = y_lab) +
     ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
       panel.grid.major.y = ggplot2::element_blank(),
       panel.grid.minor.x = ggplot2::element_blank()
     )
+  
+  if (style == "dumbbell") {
+    # Classic dumbbell: both points colored by model
+    p <- p +
+      ggplot2::geom_point(
+        ggplot2::aes(fill = .data$model),
+        shape = 21, size = 4, color = point_outline, stroke = 1
+      ) +
+      ggplot2::scale_fill_manual(values = c("XGB" = xgb_color, "GPT" = gpt_color), name = "Model")
+  } else {
+    # Winner/loser style
+    winner_colors <- c("GPT" = gpt_color, "XGB" = xgb_color)
+    
+    p <- p +
+      # winner points (colored)
+      ggplot2::geom_point(
+        data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
+        ggplot2::aes(fill = .data$model),
+        shape = 21, size = 4, color = "black", stroke = 1
+      ) +
+      ggplot2::scale_fill_manual(values = winner_colors, guide = "none") +
+      # loser points (hollow)
+      ggplot2::geom_point(
+        data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
+        shape = 21, size = 2.5, fill = "white", color = "black", stroke = 0.8
+      ) +
+      # ties (single neutral point; both overlap)
+      ggplot2::geom_point(
+        data = dplyr::filter(sens_long, .data$winner == "Tie"),
+        shape = 21, size = 4, fill = tie_color, color = "black", stroke = 1
+      )
+  }
   
   if (facet_by_family) {
     p <- p +
@@ -237,15 +276,16 @@ plot_db <- function(
       ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0, face = "bold"))
   }
   
-  # apply label mode
+  # label mode
   if (labels == "minimal") {
     p <- p +
-      ggplot2::theme(strip.text.y = ggplot2::element_blank()) +
-      ggplot2::theme(legend.position = "none")
+      ggplot2::theme(strip.text.y = ggplot2::element_blank(),
+                     legend.position = "none")
   }
   
   p
 }
+
 
 
 
