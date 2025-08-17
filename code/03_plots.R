@@ -1,13 +1,12 @@
 
-
-
-
+#Import stuff
+source("code/_utils.R")
 
 # VERSION 1 ARROWS ------------------------------------------------------------------
 
 # --- Read and prep data ---
 #df <- read_csv("predictions_combined.csv", show_col_types = FALSE)
-plot_arrow(pred_df)
+plot_arrow(df)
 plot_db(pred_df, order_by = "sens_xgb", facet_by_family = FALSE)
 plot_db(pred_df, order_by = "abs_delta", facet_by_family = TRUE)
 plot_db(pred_df, order_by = "abs_delta", facet_by_family = TRUE, labels = "minimal")
@@ -28,7 +27,6 @@ plot_db(pred_df, annotate = "none")
 library(tidyverse)
 
 # --- Read and prep data ---
-df <- read_csv("predictions_combined.csv", show_col_types = FALSE)
 
 # Family inference
 infer_family <- function(s) {

@@ -62,6 +62,7 @@ infer_family <- function(s) {
   } else {
     "Other"
   }
+}
   
   
 
@@ -140,9 +141,6 @@ plot_arrow <- function(
   }
   
   
-}
-
-
   
 # DUMBELL PLOT ------------------------------------------------------------
 
