@@ -429,7 +429,7 @@ plot_top_features <- function(
 }
 
 # Usage
-plot_top_features(xgb_feat_df, top_n = 15, base_size=20)
+plot_top_features(xgb_feat_df, top_n = 15, base_size=20, legend="minimal")
 # print(p)
 # ggsave("top_features.png", p, width = 8, height = 5, dpi = 300)
 
