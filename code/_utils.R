@@ -6,6 +6,10 @@ library(tidyverse)
 library(naniar)
 library(table1)
 library(janitor)
+library(readxl)
+library(flextable)
+library(officer)
+
 # FUNCTIONS ---------------------------------------------------------------
 
 # Concise output for followup table (only Yes's, instead of Yes/No)
@@ -56,6 +60,19 @@ infer_family <- function(s) {
   }
 }
   
+
+
+write_word_table <- function(var, doc){
+  # Adjust the flextable layout (for example, resizing columns and setting font size)
+  var <- var %>%
+    flextable::set_table_properties(width = 1, layout = "autofit") %>%
+    flextable::fontsize(size = 8)  # Adjust font size as needed
+  
+  # Add the flextable to the document
+  doc %>%
+    body_add_flextable(var) %>%
+    body_add_break()  # Add a page break after the table
+}
 
   
 # ARROW PLOT --------------------------------------------------------------

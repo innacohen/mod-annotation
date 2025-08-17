@@ -42,21 +42,31 @@ new_subtype_labels <- ant_pre_df %>%
   filter(file_hash %in% c(TRAIN, INT_VALIDATION, EXT_VALIDATION)) %>%
   select(file_hash, new_subtype_label) 
 
-ant_excel_df2 = ant_excel_df %>%
+t1_df = ant_excel_df %>%
   filter(file_hash %in% c(TRAIN, INT_VALIDATION, EXT_VALIDATION)) %>%
   clean_names() %>%
   select(row_id, file_hash, type, subtype_confidence, annotated, notes_free_text, subtype_1) %>% 
   distinct() %>%
   left_join(new_subtype_labels, by="file_hash") %>%
   left_join(cw_df, by="file_hash") %>%
-  mutate(split = case_when(split == "train" ~ "train",
-                           split == "test" ~ "internal validation",
-                           file_hash %in% EXT_VALIDATION ~ "external_validation"))
+  mutate(split = case_when(split == "train" ~ "Train",
+                           split == "test" ~ "Internal Validation",
+                           file_hash %in% EXT_VALIDATION ~ "External Validation")) %>%
+  mutate(split = factor(split, levels=c("Train","Internal Validation", "External Validation")))
 
-table1(~type+new_subtype_label |split, data= ant_excel_df2)
+label(t1_df$type) = "Type"
+label(t1_df$new_subtype_label) = "Subtype"
 
 
+t1 = table1(~type+new_subtype_label |split, data= t1_df, overall=F, extra.col=list(`P-value`=pvalue))
 
+# list of tables and the doc
+my_list <- list(df1 <- t1flex(t1))
+
+my_doc <- read_docx()
+walk(my_list, write_word_table, my_doc) 
+fname = paste0("../output/mod_file_tables_",Sys.Date(),".docx")
+print(my_doc, target = fname) %>% invisible()
 # GLOBAL VARIABLES --------------------------------------------------------
 
 names(cw_df)
