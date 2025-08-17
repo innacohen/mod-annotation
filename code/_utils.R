@@ -142,6 +142,7 @@ plot_arrow <- function(
 
   
 # DUMBELL PLOT ------------------------------------------------------------
+
 plot_db <- function(
     df,
     truth_col = "true_subtype",
@@ -151,18 +152,29 @@ plot_db <- function(
     family_order = c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither"),
     order_by = c("sens_xgb", "sens_gpt", "delta", "abs_delta"),  # abs_delta = biggest gap within family
     facet_by_family = FALSE,
-    labels = c("full", "minimal"),  # control legend & facet strip labels
-    style = c("dumbbell", "winner"), # NEW: choose plot style
+    labels = c("full", "minimal"),        # legend/strip labels
+    style = c("dumbbell", "winner"),      # point styling
     title = "Subtype Sensitivity: XGB vs GPT",
     subtitle = NULL,
     x_lab = "Sensitivity (TP %)",
     y_lab = NULL,
     xgb_color = "steelblue",
     gpt_color = "firebrick",
-    tie_color = "grey50",          # NEW: color for ties (winner style)
+    tie_color = "grey50",
     line_color = "#999999",
     point_outline = "#333333",
-    base_size = 14
+    base_size = 14,
+    # --- NEW: annotation controls ---
+    annotate_values = FALSE,              # add % labels near points
+    percent_accuracy = 1,                 # 0, 1, or 0.1, etc.
+    label_size = 3,
+    # label horizontal justifications (negative -> to the right; >1 -> to the left of point)
+    hjust_winner = -0.3,
+    hjust_loser  =  1.3,
+    hjust_tie    = -0.3,
+    # X-axis domain controls
+    x_min = 0, x_max = 1.0,               # sensitivities in [0,1]
+    extend_right_if_annotated = 0.10      # adds to x_max when annotate_values = TRUE
 ) {
   labels   <- match.arg(labels)
   order_by <- match.arg(order_by)
@@ -224,13 +236,17 @@ plot_db <- function(
     }
   }
   
+  # axis limits (optionally extend right to make room for labels)
+  x_right <- if (annotate_values) x_max + extend_right_if_annotated else x_max
+  
   # base plot
   p <- ggplot2::ggplot(
     sens_long,
     ggplot2::aes(x = .data$sensitivity, y = .data[[truth_col]], group = .data[[truth_col]])
   ) +
     ggplot2::geom_line(color = line_color, linewidth = 0.8) +
-    ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+    ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = percent_accuracy),
+                                limits = c(x_min, x_right)) +
     ggplot2::labs(title = title, subtitle = subtitle, x = x_lab, y = y_lab) +
     ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
@@ -251,22 +267,42 @@ plot_db <- function(
     winner_colors <- c("GPT" = gpt_color, "XGB" = xgb_color)
     
     p <- p +
-      # winner points (colored)
       ggplot2::geom_point(
         data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
         ggplot2::aes(fill = .data$model),
         shape = 21, size = 4, color = "black", stroke = 1
       ) +
       ggplot2::scale_fill_manual(values = winner_colors, guide = "none") +
-      # loser points (hollow)
       ggplot2::geom_point(
         data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
         shape = 21, size = 2.5, fill = "white", color = "black", stroke = 0.8
       ) +
-      # ties (single neutral point; both overlap)
       ggplot2::geom_point(
         data = dplyr::filter(sens_long, .data$winner == "Tie"),
         shape = 21, size = 4, fill = tie_color, color = "black", stroke = 1
+      )
+  }
+  
+  # add percent labels if requested
+  if (annotate_values) {
+    # winner labels to the right
+    p <- p +
+      ggplot2::geom_text(
+        data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
+        ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
+        hjust = hjust_winner, size = label_size, color = "black"
+      ) +
+      # loser labels to the left
+      ggplot2::geom_text(
+        data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
+        ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
+        hjust = hjust_loser, size = label_size, color = "black"
+      ) +
+      # tie labels to the right
+      ggplot2::geom_text(
+        data = dplyr::filter(sens_long, .data$winner == "Tie"),
+        ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
+        hjust = hjust_tie, size = label_size, color = "black"
       )
   }
   
@@ -285,7 +321,3 @@ plot_db <- function(
   
   p
 }
-
-
-
-
