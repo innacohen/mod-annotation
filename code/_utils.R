@@ -39,10 +39,6 @@ pvalue <- function(x, ...) {
 
 
 
-# PLOTTING FUNCTIONS ------------------------------------------------------
-
-
-
 # Family inference
 infer_family <- function(s) {
   s <- trimws(s)
@@ -65,7 +61,9 @@ infer_family <- function(s) {
   }
   
   
-  
+
+# ARROW PLOT --------------------------------------------------------------
+
   
 plot_arrow <- function(
     df,
@@ -142,6 +140,8 @@ plot_arrow <- function(
 }
 
 
+  
+# DUMBELL PLOT ------------------------------------------------------------
 
 plot_db <- function(
     df,
@@ -152,6 +152,7 @@ plot_db <- function(
     family_order = c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither"),
     order_by = c("sens_xgb", "sens_gpt", "delta", "abs_delta"),  # abs_delta = biggest gap within family
     facet_by_family = FALSE,
+    labels = c("full", "minimal"),  # NEW: control legend & facet strip labels
     title = "Subtype Sensitivity: XGB vs GPT",
     subtitle = NULL,
     x_lab = "Sensitivity (TP %)",
@@ -162,9 +163,10 @@ plot_db <- function(
     point_outline = "#333333",
     base_size = 14
 ) {
+  labels   <- match.arg(labels)
   order_by <- match.arg(order_by)
   
-  # Compute per-subtype sensitivity + family and delta
+  # per-subtype sensitivity, family, and delta
   sens <- df %>%
     dplyr::group_by(.data[[truth_col]]) %>%
     dplyr::summarise(
@@ -178,7 +180,7 @@ plot_db <- function(
     ) %>%
     dplyr::mutate(family = factor(.data$family, levels = family_order))
   
-  # Ordering
+  # ordering
   sens <- {
     if (order_by == "abs_delta") {
       sens %>%
@@ -197,7 +199,7 @@ plot_db <- function(
       !!truth_col := factor(.data[[truth_col]], levels = rev(unique(.data[[truth_col]])))
     )
   
-  # Long format for plotting
+  # long form for plotting
   sens_long <- sens %>%
     tidyr::pivot_longer(
       cols = c("sens_xgb", "sens_gpt"),
@@ -206,7 +208,7 @@ plot_db <- function(
     ) %>%
     dplyr::mutate(model = dplyr::recode(.data$model, sens_xgb = "XGB", sens_gpt = "GPT"))
   
-  # Default subtitle for the "gap within family" layout
+  # default subtitle for biggest-gap view with facets
   if (is.null(subtitle) && facet_by_family && order_by == "abs_delta") {
     subtitle <- "Ordered by biggest gap within each family"
   }
@@ -235,7 +237,15 @@ plot_db <- function(
       ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0, face = "bold"))
   }
   
+  # apply label mode
+  if (labels == "minimal") {
+    p <- p +
+      ggplot2::theme(strip.text.y = ggplot2::element_blank()) +
+      ggplot2::theme(legend.position = "none")
+  }
+  
   p
 }
+
 
 
