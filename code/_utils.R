@@ -5,13 +5,9 @@
 library(tidyverse)
 library(naniar)
 library(table1)
-setwd("~/palmer_scratch/mod-extract")
-dd = read_csv("data/pipeline/feature_dd.csv")
-xgb_feat_df = read_csv("data/pipeline/feature_importance_global.csv")
-pred_df = read_csv("data/pipeline/predictions_with_shap.csv")
-ant_raw_df = read_csv("data/pipeline/ant_with_excluded_samples.csv")
-ant_pre_df = read_csv("data/pipeline/preprocessed.csv")
-  
+library(googlesheets4)
+library(googledrive)
+
 # FUNCTIONS ---------------------------------------------------------------
 
 
@@ -64,8 +60,8 @@ infer_family <- function(s) {
   }
 }
   
-  
 
+  
 # ARROW PLOT --------------------------------------------------------------
 
   
@@ -380,10 +376,11 @@ plot_db <- function(
 
 # TOP FEATURES BARPLOT ----------------------------------------------------
 
-library(tidyverse)
-
 # If you need to read it:
 # xgb_feat_df <- read_csv("feature_importance.csv", show_col_types = FALSE)
+# If you need to read it:
+# xgb_feat_df <- readr::read_csv("feature_importance.csv", show_col_types = FALSE)
+
 plot_top_features <- function(
     xgb_feat_df,
     top_n = 15,
@@ -414,22 +411,18 @@ plot_top_features <- function(
     ggplot2::scale_fill_manual(values = c("Simulation-derived" = sim_color,
                                           "Text-derived" = text_color)) +
     ggplot2::theme_minimal(base_size = base_size) +
-    ggplot2::theme(
-      axis.text.y = element_text(color = "black"),
-      axis.title.y = element_text(color = "black"),
+    theme(
       panel.grid.major.y = ggplot2::element_blank(),
-      panel.grid.minor = ggplot2::element_blank()
+      panel.grid.minor = ggplot2::element_blank(), 
+      axis.text.y = element_text(size = 14, color = "black"),
+      axis.title.y = element_text(size = 16, color = "black"),
+      axis.ticks.y = element_line(color = "black")
     )
-  
+
   if (legend %in% c("minimal", "none")) {
     p <- p + ggplot2::theme(legend.position = "none")
   }
   
   p
 }
-
-# Usage
-plot_top_features(xgb_feat_df, top_n = 15, base_size=20, legend="minimal")
-# print(p)
-# ggsave("top_features.png", p, width = 8, height = 5, dpi = 300)
 
