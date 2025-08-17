@@ -16,6 +16,28 @@ ant_pre_df = read_csv("data/pipeline/preprocessed.csv")
 
 
 
+# WRITE THE FEATURES DF TO GSHEET -----------------------------------------
+
+# Create a brand-new Sheet with one tab pre-populated
+ss <- gs4_create(
+  "Features",
+  sheets = list(results = pred_df)
+)
+# The Sheet URL:
+ss$spreadsheet_url
+
+
+url <- "https://docs.google.com/spreadsheets/d/1gZ9pdoGwL_jVwC8APBZ_zb0jzLwl2hg3hIdfmLLEmRY/edit?gid=874705921#gid=874705921"
+df <- read_sheet(url)
+
+
+gs4_auth()          # opens a browser to sign in
+drive_auth()        # for sharing/permissions later
+
+
+# WRITE the FEATURE DF to GSHEET ------------------------------------------
+ss <- gs4_create("features")
+sheet_write(xgb, ss = ss, sheet = "data")  # creates/overwrites the tab "data"
 
 
 # FEATURES ----------------------------------------------------------------

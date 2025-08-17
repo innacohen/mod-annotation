@@ -4,10 +4,14 @@
 
 library(tidyverse)
 library(naniar)
-library(table1)
+#library(table1)
 library(googlesheets4)
 library(googledrive)
 
+#install.packages(c("googledrive", "googlesheets4", "gargle", "httr2"))
+
+
+gs4_auth()
 # FUNCTIONS ---------------------------------------------------------------
 
 
