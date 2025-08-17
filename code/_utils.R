@@ -5,10 +5,13 @@
 library(tidyverse)
 library(naniar)
 library(table1)
-setwd("~/palmer_scratch/mod-extract/code")
-
-
-
+setwd("~/palmer_scratch/mod-extract")
+dd = read_csv("data/pipeline/feature_dd.csv")
+xgb_feat_df = read_csv("data/pipeline/feature_importance_global.csv")
+pred_df = read_csv("data/pipeline/predictions_with_shap.csv")
+ant_raw_df = read_csv("data/pipeline/ant_with_excluded_samples.csv")
+ant_pre_df = read_csv("data/pipeline/preprocessed.csv")
+  
 # FUNCTIONS ---------------------------------------------------------------
 
 
@@ -152,8 +155,9 @@ plot_db <- function(
     family_order = c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither"),
     order_by = c("sens_xgb", "sens_gpt", "delta", "abs_delta"),  # abs_delta = biggest gap within family
     facet_by_family = FALSE,
-    labels = c("full", "minimal"),        # legend/strip labels
-    style = c("dumbbell", "winner"),      # point styling
+    labels = c("full", "minimal"),      # legend & facet strip labels
+    style = c("dumbbell", "winner"),    # point styling
+    annotate = c("none", "percent", "counts"),  # <-- mutually exclusive
     title = "Subtype Sensitivity: XGB vs GPT",
     subtitle = NULL,
     x_lab = "Sensitivity (TP %)",
@@ -164,70 +168,105 @@ plot_db <- function(
     line_color = "#999999",
     point_outline = "#333333",
     base_size = 14,
-    # --- NEW: annotation controls ---
-    annotate_values = FALSE,              # add % labels near points
-    percent_accuracy = 1,                 # 0, 1, or 0.1, etc.
+    # Percent annotation controls (used when annotate == "percent")
+    percent_accuracy = 1,
     label_size = 3,
-    # label horizontal justifications (negative -> to the right; >1 -> to the left of point)
     hjust_winner = -0.3,
     hjust_loser  =  1.3,
     hjust_tie    = -0.3,
-    # X-axis domain controls
-    x_min = 0, x_max = 1.0,               # sensitivities in [0,1]
-    extend_right_if_annotated = 0.10      # adds to x_max when annotate_values = TRUE
+    # Counts annotation controls (used when annotate == "counts")
+    counts_label_size = 3,
+    counts_hjust_winner = -0.3,
+    counts_hjust_loser  =  1.3,
+    counts_hjust_tie    = -0.3,
+    counts_nudge_x_winner = 0.01,
+    counts_nudge_x_loser  = 0.00,
+    counts_nudge_x_tie    = 0.01,
+    # Axis domain
+    x_min = 0, x_max = 1.0,
+    extend_right_if_annotated = 0.10
 ) {
   labels   <- match.arg(labels)
   order_by <- match.arg(order_by)
   style    <- match.arg(style)
+  annotate <- match.arg(annotate)
   
-  # per-subtype sensitivity, family, delta, winner
-  sens <- df %>%
-    dplyr::group_by(.data[[truth_col]]) %>%
-    dplyr::summarise(
-      sens_xgb = mean(.data[[xgb_match_col]], na.rm = TRUE),
-      sens_gpt = mean(.data[[gpt_match_col]], na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
+  # --- Build long-format counts & sensitivities (per model) ---
+  counts_long <- dplyr::bind_rows(
+    df %>%
+      dplyr::group_by(.data[[truth_col]]) %>%
+      dplyr::summarise(
+        correct = sum(.data[[xgb_match_col]], na.rm = TRUE),
+        total   = sum(!is.na(.data[[xgb_match_col]])),
+        .groups = "drop"
+      ) %>% dplyr::mutate(model = "XGB"),
+    df %>%
+      dplyr::group_by(.data[[truth_col]]) %>%
+      dplyr::summarise(
+        correct = sum(.data[[gpt_match_col]], na.rm = TRUE),
+        total   = sum(!is.na(.data[[gpt_match_col]])),
+        .groups = "drop"
+      ) %>% dplyr::mutate(model = "GPT")
+  ) %>%
     dplyr::mutate(
-      family = purrr::map_chr(.data[[truth_col]], family_fun),
-      diff   = sens_gpt - sens_xgb,
+      sensitivity  = dplyr::if_else(total > 0, correct / total, NA_real_),
+      label_counts = paste0(correct, "/", total),
+      family = purrr::map_chr(.data[[truth_col]], family_fun)
+    )
+  
+  # Winner/loser per subtype (compare sensitivities)
+  winner_df <- counts_long %>%
+    dplyr::select(.data[[truth_col]], .data$model, .data$sensitivity) %>%
+    tidyr::pivot_wider(names_from = .data$model, values_from = .data$sensitivity) %>%
+    dplyr::mutate(
+      diff   = GPT - XGB,
       winner = dplyr::case_when(
         diff > 0 ~ "GPT",
         diff < 0 ~ "XGB",
         TRUE     ~ "Tie"
       )
     ) %>%
+    dplyr::select(.data[[truth_col]], .data$winner, .data$diff)
+  
+  sens_long <- counts_long %>%
+    dplyr::left_join(winner_df, by = truth_col) %>%
     dplyr::mutate(family = factor(.data$family, levels = family_order))
   
-  # ordering
-  sens <- {
-    if (order_by == "abs_delta") {
-      sens %>%
-        dplyr::group_by(.data$family) %>%
-        dplyr::arrange(dplyr::desc(abs(.data$diff)), .by_group = TRUE) %>%
-        dplyr::ungroup()
-    } else if (order_by == "sens_xgb") {
-      sens %>% dplyr::arrange(.data$family, dplyr::desc(.data$sens_xgb))
-    } else if (order_by == "sens_gpt") {
-      sens %>% dplyr::arrange(.data$family, dplyr::desc(.data$sens_gpt))
-    } else { # "delta"
-      sens %>% dplyr::arrange(.data$family, dplyr::desc(.data$diff))
-    }
-  } %>%
-    dplyr::mutate(
-      !!truth_col := factor(.data[[truth_col]], levels = rev(unique(.data[[truth_col]])))
-    )
+  # --- Ordering by choice (robust) ---
+  if (order_by == "abs_delta") {
+    sens_long <- sens_long %>%
+      dplyr::group_by(family) %>%
+      dplyr::arrange(dplyr::desc(abs(.data$diff)), .by_group = TRUE) %>%
+      dplyr::ungroup()
+    
+    levs <- sens_long %>%
+      dplyr::pull(!!rlang::sym(truth_col)) %>%
+      unique()
+    
+  } else if (order_by == "sens_xgb") {
+    ord <- sens_long %>%
+      dplyr::filter(.data$model == "XGB") %>%
+      dplyr::arrange(.data$family, dplyr::desc(.data$sensitivity))
+    levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col)) %>% unique()
+    
+  } else if (order_by == "sens_gpt") {
+    ord <- sens_long %>%
+      dplyr::filter(.data$model == "GPT") %>%
+      dplyr::arrange(.data$family, dplyr::desc(.data$sensitivity))
+    levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col)) %>% unique()
+    
+  } else { # "delta"
+    ord <- counts_long %>%
+      dplyr::distinct(!!rlang::sym(truth_col), family) %>%
+      dplyr::left_join(winner_df, by = truth_col) %>%
+      dplyr::arrange(family, dplyr::desc(.data$diff))
+    levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col))
+  }
   
-  # long format for plotting (+ carry winner per subtype)
-  sens_long <- sens %>%
-    tidyr::pivot_longer(
-      cols = c("sens_xgb", "sens_gpt"),
-      names_to = "model",
-      values_to = "sensitivity"
-    ) %>%
-    dplyr::mutate(model = dplyr::recode(.data$model, sens_xgb = "XGB", sens_gpt = "GPT"))
+  sens_long <- sens_long %>%
+    dplyr::mutate(!!truth_col := factor(.data[[truth_col]], levels = rev(levs)))
   
-  # default subtitle for gap+facets
+  # Default subtitle for gap+facets
   if (is.null(subtitle) && facet_by_family && order_by == "abs_delta") {
     subtitle <- if (style == "winner") {
       "Winner in color; loser hollow; ties in grey — ordered by biggest gap within each family"
@@ -236,17 +275,20 @@ plot_db <- function(
     }
   }
   
-  # axis limits (optionally extend right to make room for labels)
-  x_right <- if (annotate_values) x_max + extend_right_if_annotated else x_max
+  # Axis limits (optionally extend right to make room for labels)
+  needs_extend <- annotate != "none"
+  x_right <- if (needs_extend) x_max + extend_right_if_annotated else x_max
   
-  # base plot
+  # --- Base plot ---
   p <- ggplot2::ggplot(
     sens_long,
     ggplot2::aes(x = .data$sensitivity, y = .data[[truth_col]], group = .data[[truth_col]])
   ) +
     ggplot2::geom_line(color = line_color, linewidth = 0.8) +
-    ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = percent_accuracy),
-                                limits = c(x_min, x_right)) +
+    ggplot2::scale_x_continuous(
+      labels = scales::percent_format(accuracy = percent_accuracy),
+      limits = c(x_min, x_right)
+    ) +
     ggplot2::labs(title = title, subtitle = subtitle, x = x_lab, y = y_lab) +
     ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
@@ -254,8 +296,8 @@ plot_db <- function(
       panel.grid.minor.x = ggplot2::element_blank()
     )
   
+  # --- Points (by style) ---
   if (style == "dumbbell") {
-    # Classic dumbbell: both points colored by model
     p <- p +
       ggplot2::geom_point(
         ggplot2::aes(fill = .data$model),
@@ -263,9 +305,7 @@ plot_db <- function(
       ) +
       ggplot2::scale_fill_manual(values = c("XGB" = xgb_color, "GPT" = gpt_color), name = "Model")
   } else {
-    # Winner/loser style
     winner_colors <- c("GPT" = gpt_color, "XGB" = xgb_color)
-    
     p <- p +
       ggplot2::geom_point(
         data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
@@ -283,36 +323,52 @@ plot_db <- function(
       )
   }
   
-  # add percent labels if requested
-  if (annotate_values) {
-    # winner labels to the right
+  # --- Annotations (mutually exclusive) ---
+  if (annotate == "percent") {
     p <- p +
       ggplot2::geom_text(
         data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
         ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
         hjust = hjust_winner, size = label_size, color = "black"
       ) +
-      # loser labels to the left
       ggplot2::geom_text(
         data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
         ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
         hjust = hjust_loser, size = label_size, color = "black"
       ) +
-      # tie labels to the right
       ggplot2::geom_text(
         data = dplyr::filter(sens_long, .data$winner == "Tie"),
         ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
         hjust = hjust_tie, size = label_size, color = "black"
       )
+  } else if (annotate == "counts") {
+    p <- p +
+      ggplot2::geom_text(
+        data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
+        ggplot2::aes(label = .data$label_counts),
+        hjust = counts_hjust_winner, size = counts_label_size, color = "black",
+        nudge_x = counts_nudge_x_winner
+      ) +
+      ggplot2::geom_text(
+        data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
+        ggplot2::aes(label = .data$label_counts),
+        hjust = counts_hjust_loser, size = counts_label_size, color = "black",
+        nudge_x = counts_nudge_x_loser
+      ) +
+      ggplot2::geom_text(
+        data = dplyr::filter(sens_long, .data$winner == "Tie"),
+        ggplot2::aes(label = .data$label_counts),
+        hjust = counts_hjust_tie, size = counts_label_size, color = "black",
+        nudge_x = counts_nudge_x_tie
+      )
   }
   
+  # Facets & label mode
   if (facet_by_family) {
     p <- p +
       ggplot2::facet_grid(family ~ ., scales = "free_y", space = "free_y") +
       ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0, face = "bold"))
   }
-  
-  # label mode
   if (labels == "minimal") {
     p <- p +
       ggplot2::theme(strip.text.y = ggplot2::element_blank(),
@@ -321,3 +377,4 @@ plot_db <- function(
   
   p
 }
+
