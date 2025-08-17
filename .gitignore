@@ -15,3 +15,8 @@ data/*
 # Keep pipeline folder and its contents
 !data/pipeline/
 !data/pipeline/**
+
+# Ignore compiled objects
+*.rds
+*.so
+*.dll
