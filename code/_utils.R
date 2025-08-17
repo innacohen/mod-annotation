@@ -5,17 +5,12 @@
 library(tidyverse)
 library(naniar)
 #library(table1)
-library(googlesheets4)
-library(googledrive)
+
 
 #install.packages(c("googledrive", "googlesheets4", "gargle", "httr2"))
 
-
-gs4_auth()
 # FUNCTIONS ---------------------------------------------------------------
 
-
-### Render p-value
 # Concise output for followup table (only Yes's, instead of Yes/No)
 #Show the mean (SD) and median (IQR) for continuous variables
 pvalue <- function(x, ...) {
@@ -420,7 +415,8 @@ plot_top_features <- function(
       panel.grid.minor = ggplot2::element_blank(), 
       axis.text.y = element_text(size = 14, color = "black"),
       axis.title.y = element_text(size = 16, color = "black"),
-      axis.ticks.y = element_line(color = "black")
+      axis.ticks.y = element_line(color = "black"),
+      legend.position = "bottom"
     )
 
   if (legend %in% c("minimal", "none")) {
@@ -428,5 +424,106 @@ plot_top_features <- function(
   }
   
   p
+}
+
+
+# MARGIN ------------------------------------------------------------------
+
+plot_margin <- function(
+    df,
+    truth_col       = "true_subtype",
+    xgb_match_col   = "xgb_subtype_match",
+    gpt_match_col   = "gpt_subtype_match",
+    family_fun      = infer_family,  # function: character -> family string
+    family_order    = c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither"),
+    winner_colors   = c("XGB" = "steelblue", "GPT" = "firebrick", "Tie" = "grey50"),
+    base_size       = 20,
+    show_family_strips = FALSE
+) {
+  stopifnot(is.function(family_fun))
+  # Build sensitivity data for each model
+  sens_long <- dplyr::bind_rows(
+    df |>
+      dplyr::group_by(truth = .data[[truth_col]]) |>
+      dplyr::summarise(
+        correct = sum(.data[[xgb_match_col]], na.rm = TRUE),
+        total   = sum(!is.na(.data[[xgb_match_col]])),
+        .groups = "drop"
+      ) |>
+      dplyr::mutate(model = "XGB"),
+    df |>
+      dplyr::group_by(truth = .data[[truth_col]]) |>
+      dplyr::summarise(
+        correct = sum(.data[[gpt_match_col]], na.rm = TRUE),
+        total   = sum(!is.na(.data[[gpt_match_col]])),
+        .groups = "drop"
+      ) |>
+      dplyr::mutate(model = "GPT")
+  ) |>
+    dplyr::filter(.data$total > 0) |>
+    dplyr::mutate(
+      sensitivity = .data$correct / .data$total,
+      family      = purrr::map_chr(.data$truth, family_fun)
+    )
+  
+  # Compute winner margin: XGB - GPT
+  winner_df <- sens_long |>
+    dplyr::select(truth, model, sensitivity, family) |>
+    tidyr::pivot_wider(names_from = .data$model, values_from = .data$sensitivity) |>
+    dplyr::mutate(
+      diff   = .data$XGB - .data$GPT,
+      winner = dplyr::case_when(
+        .data$diff > 0 ~ "XGB",
+        .data$diff < 0 ~ "GPT",
+        TRUE           ~ "Tie"
+      )
+    )
+  
+  # Order subtypes by family then abs(diff)
+  winner_df <- winner_df |>
+    dplyr::mutate(family = factor(.data$family, levels = family_order)) |>
+    dplyr::group_by(.data$family) |>
+    dplyr::arrange(dplyr::desc(abs(.data$diff)), .by_group = TRUE) |>
+    dplyr::mutate(truth = factor(.data$truth, levels = rev(unique(.data$truth)))) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(
+      label_txt = paste0(round(.data$diff * 100), "%"),
+      hjust_lab = dplyr::if_else(.data$diff > 0, -0.3, 1.3)
+    )
+  
+  # X-axis limits with a bit of padding around min/max
+  min_d <- min(winner_df$diff, na.rm = TRUE)
+  max_d <- max(winner_df$diff, na.rm = TRUE)
+  pad   <- 0.05
+  x_min <- if (is.finite(min_d)) min(min_d - pad, -pad) else -pad
+  x_max <- if (is.finite(max_d)) max(max_d + pad,  pad) else  pad
+  
+  p <- ggplot2::ggplot(winner_df, ggplot2::aes(x = .data$diff, y = .data$truth, fill = .data$winner)) +
+    ggplot2::geom_col() +
+    ggplot2::geom_text(ggplot2::aes(label = .data$label_txt, hjust = .data$hjust_lab),
+                       color = "black", size = 5) +
+    ggplot2::scale_fill_manual(values = winner_colors, guide = "none") +
+    ggplot2::geom_vline(xintercept = 0, color = "black") +
+    ggplot2::scale_x_continuous(
+      labels = scales::percent_format(accuracy = 1),
+      limits = c(x_min, x_max)
+    ) +
+    ggplot2::facet_grid(family ~ ., scales = "free_y", space = "free_y") +
+    ggplot2::labs(
+      title = "Winner Margin by Subtype",
+      subtitle = NULL,
+      x = "Difference in Sensitivity (XGB − GPT)",
+      y = NULL
+    ) +
+    ggplot2::theme_minimal(base_size = base_size) +
+    ggplot2::theme(
+      axis.text.y        = ggplot2::element_text(color = "black"),
+      axis.title.y       = ggplot2::element_text(color = "black"),
+      axis.ticks.y       = ggplot2::element_line(color = "black"),
+      panel.grid.major.y = ggplot2::element_blank(),
+      strip.text.y       = if (show_family_strips) ggplot2::element_text() else ggplot2::element_blank()
+    )
+  
+  return(p)
 }
 
