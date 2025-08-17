@@ -376,3 +376,60 @@ plot_db <- function(
   p
 }
 
+
+
+# TOP FEATURES BARPLOT ----------------------------------------------------
+
+library(tidyverse)
+
+# If you need to read it:
+# xgb_feat_df <- read_csv("feature_importance.csv", show_col_types = FALSE)
+plot_top_features <- function(
+    xgb_feat_df,
+    top_n = 15,
+    legend = c("full", "minimal", "none"),  # "minimal"/"none" hide legend
+    base_size = 20,                          # increase for bigger text
+    sim_color = "steelblue",
+    text_color = "#6E7B8B"
+) {
+  legend <- match.arg(legend)
+  
+  df_plot <- xgb_feat_df %>%
+    dplyr::mutate(
+      feature_type = dplyr::if_else(stringr::str_detect(feature, "_simfeat"),
+                                    "Simulation-derived", "Text-derived")
+    ) %>%
+    dplyr::arrange(dplyr::desc(gain)) %>%
+    dplyr::slice_head(n = top_n) %>%
+    dplyr::mutate(feature = forcats::fct_reorder(feature, gain))
+  
+  p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = gain, y = feature, fill = feature_type)) +
+    ggplot2::geom_col() +
+    ggplot2::labs(
+      title = paste0("Top ", nrow(df_plot), " Features"),
+      x = "Gain importance",
+      y = "Feature",
+      fill = if (legend == "full") "Feature type" else NULL
+    ) +
+    ggplot2::scale_fill_manual(values = c("Simulation-derived" = sim_color,
+                                          "Text-derived" = text_color)) +
+    ggplot2::theme_minimal(base_size = base_size) +
+    ggplot2::theme(
+      axis.text.y = element_text(color = "black"),
+      axis.title.y = element_text(color = "black"),
+      panel.grid.major.y = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank()
+    )
+  
+  if (legend %in% c("minimal", "none")) {
+    p <- p + ggplot2::theme(legend.position = "none")
+  }
+  
+  p
+}
+
+# Usage
+plot_top_features(xgb_feat_df, top_n = 15, base_size=20)
+# print(p)
+# ggsave("top_features.png", p, width = 8, height = 5, dpi = 300)
+

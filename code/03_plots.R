@@ -4,20 +4,29 @@ source("code/_utils.R")
 
 # VERSION 1 ARROWS ------------------------------------------------------------------
 
-# --- Read and prep data ---
-#df <- read_csv("predictions_combined.csv", show_col_types = FALSE)
-plot_arrow(df)
+
+
+# DUMBELL PLOTS -----------------------------------------------------------
+
 plot_db(pred_df, order_by = "sens_xgb", facet_by_family = FALSE)
 plot_db(pred_df, order_by = "abs_delta", facet_by_family = TRUE)
 plot_db(pred_df, order_by = "abs_delta", facet_by_family = TRUE, labels = "minimal")
 plot_db(pred_df, style = "winner", order_by = "abs_delta", facet_by_family = TRUE, labels = "minimal")
-plot_db(pred_df, annotate = "none")
+plot_db(pred_df, style = "winner", order_by = "abs_delta",
+        facet_by_family = TRUE, labels = "minimal",
+        annotate = "percent", percent_accuracy = 1)
+plot_db(pred_df, style = "dumbbell", order_by = "sens_gpt",
+        facet_by_family = FALSE, annotate = "counts")
 
 
 
 
 
 
+
+# ARROW -------------------------------------------------------------------
+#todo: compare gpt to gpt + guidelines 
+plot_arrow(pred_df)
 
 
 
