@@ -263,60 +263,163 @@ ggplot(overall_all,
 
 
 # facet -------------------------------------------------------------------
-
 library(dplyr)
 library(tidyr)
 library(stringr)
 library(ggplot2)
 library(scales)
 
-# 1) Identify numeric *_simfeat features
-all_feats <- names(df)[grepl("_simfeat$", names(df)) & sapply(df, is.numeric)]
+# helper: list available subtypes
+unique(df$true_subtype)
+
+plot_delta_missing_for_subtype <- function(subtype,
+                                           top_n = 25,         # show top N by |delta|
+                                           min_abs_delta = 0,  # or threshold by absolute delta
+                                           base_size = 11) {
+  # 1) numeric *_simfeat features only
+  simfeats <- names(df)[grepl("_simfeat$", names(df)) & sapply(df, is.numeric)]
+  stopifnot(length(simfeats) > 0)
+  
+  # 2) Filter to requested subtype and go long
+  long_one <- df %>%
+    filter(true_subtype == subtype) %>%
+    select(misclassified, all_of(simfeats)) %>%
+    pivot_longer(-misclassified, names_to = "feature", values_to = "val") %>%
+    transmute(
+      misclassified,
+      feature_clean = str_remove(feature, "_simfeat$"),
+      is_missing = is.na(val)
+    )
+  
+  # If no rows for this subtype, bail early
+  if (nrow(long_one) == 0) {
+    stop("No rows found for subtype: ", subtype)
+  }
+  
+  # 3) % missing per group, then wide, then delta
+  delta_df <- long_one %>%
+    group_by(feature_clean, misclassified) %>%
+    summarise(pct_missing = mean(is_missing), .groups = "drop") %>%
+    pivot_wider(names_from = misclassified, values_from = pct_missing,
+                names_prefix = "pct_missing_") %>%
+    # some features may be all-NA or all-present; handle safely
+    mutate(
+      pct_missing_TRUE  = coalesce(pct_missing_TRUE,  0),
+      pct_missing_FALSE = coalesce(pct_missing_FALSE, 0),
+      delta = pct_missing_TRUE - pct_missing_FALSE,
+      sign  = ifelse(delta > 0, "More in Misclassified", "More in Correct")
+    )
+  
+  # 4) filter by effect size (optional)
+  delta_df <- delta_df %>%
+    filter(abs(delta) >= min_abs_delta) %>%
+    arrange(desc(abs(delta))) %>%
+    { if (!is.null(top_n)) head(., top_n) else . } %>%
+    mutate(feature_clean = factor(feature_clean, levels = rev(.$feature_clean)))
+  
+  # 5) plot
+  ggplot(delta_df, aes(x = feature_clean, y = delta, fill = sign)) +
+    geom_col(width = 0.8) +
+    coord_flip() +
+    geom_hline(yintercept = 0, linetype = 2) +
+    scale_y_continuous(labels = percent) +
+    scale_fill_manual(values = c("More in Correct" = "#1f77b4",   # blue
+                                 "More in Misclassified" = "#e377c2")) + # pink
+    labs(x = NULL,
+         y = "Δ % Missing (Misclassified − Correct)",
+         fill = NULL,
+         title = subtype) +
+    theme_bw(base_size = base_size) +
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = base_size - 3))
+}
+
+# Example usage:
+plot_delta_missing_for_subtype("I H")
+plot_delta_missing_for_subtype("I Na (General)")
+# plot_delta_missing_for_subtype("I H", min_abs_delta = 0.05)   # only show |Δ| ≥ 5%
+
+
+
+
+
+
+# facet -------------------------------------------------------------------
+
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(scales)
+library(tidytext)   # for reorder_within / scale_y_reordered
+
+# Which subtypes to include (exact text)
+keep_subtypes <- c(
+  "I H",
+  "I K (A-type)",
+  "I K (Ca-activated)",
+  "I K (Delayed Rectifier)",
+  "I K (M-type)",
+  "I K (Rare)",
+  "I Na (General)"
+)
+
+# 1) numeric *_simfeat features only
+simfeats <- names(df)[grepl("_simfeat$", names(df)) & sapply(df, is.numeric)]
 
 # 2) Long format with missingness
 long_all <- df %>%
-  select(true_subtype, misclassified, all_of(all_feats)) %>%
+  select(true_subtype, misclassified, all_of(simfeats)) %>%
   pivot_longer(-c(true_subtype, misclassified),
                names_to = "feature", values_to = "val") %>%
   mutate(feature_clean = str_remove(feature, "_simfeat$"),
          is_missing = is.na(val))
 
-# 3) % missing per group
+# 3) % missing per group (Correct vs Misclassified)
 pct_by_grp_all <- long_all %>%
   group_by(true_subtype, feature_clean, misclassified) %>%
   summarise(pct_missing = mean(is_missing), .groups = "drop")
 
-# 4) Pivot wide + compute delta per subtype
+# 4) Pivot wide + compute delta, then filter to selected subtypes
 delta_all <- pct_by_grp_all %>%
   pivot_wider(names_from = misclassified, values_from = pct_missing,
               names_prefix = "pct_missing_") %>%
   mutate(
+    pct_missing_TRUE  = coalesce(pct_missing_TRUE,  0),
+    pct_missing_FALSE = coalesce(pct_missing_FALSE, 0),
     delta = pct_missing_TRUE - pct_missing_FALSE,
-    sign = ifelse(delta > 0, "More in Misclassified", "More in Correct")
-  )
+    sign  = ifelse(delta > 0, "More in Misclassified", "More in Correct")
+  ) %>%
+  filter(true_subtype %in% keep_subtypes)
 
-# 5) Diverging bar chart faceted by subtype
-ggplot(delta_all,
-       aes(x = reorder(feature_clean, delta), y = delta, fill = sign)) +
+# (Optional) keep only the largest |Δ| per facet so labels are readable
+top_n_per_facet <- 20
+delta_top <- delta_all %>%
+  group_by(true_subtype) %>%
+  slice_max(order_by = abs(delta), n = top_n_per_facet, with_ties = FALSE) %>%
+  ungroup()
+
+# 5) Faceted diverging bars (horizontal), ordered within each facet
+ggplot(delta_top,
+       aes(x = delta,
+           y = reorder_within(feature_clean, delta, true_subtype),
+           fill = sign)) +
   geom_col(width = 0.8) +
-  coord_flip() +
-  geom_hline(yintercept = 0, linetype = 2) +
-  scale_y_continuous(labels = percent) +
-  scale_fill_manual(values = c("More in Correct" = "#1f77b4", 
-                               "More in Misclassified" = "#e377c2")) +
-  labs(x = NULL,
-       y = "Δ % Missing (Misclassified − Correct)",
+  geom_vline(xintercept = 0, linetype = 2) +
+  scale_x_continuous(labels = percent) +
+  scale_y_reordered() +
+  scale_fill_manual(values = c("More in Correct" = "#1f77b4",     # blue
+                               "More in Misclassified" = "#e377c2")) + # pink
+  labs(x = "Δ % Missing (Misclassified − Correct)",
+       y = NULL,
        fill = NULL) +
   facet_wrap(~ true_subtype, scales = "free_y") +
   theme_bw(base_size = 10) +
-  theme(legend.position = "top",
-        axis.text.y = element_text(size = 6),
-        strip.text = element_text(size = 9, face = "bold"))
-
-
-
-
-
+  theme(
+    legend.position = "top",
+    axis.text.y = element_text(size = 6.5),
+    strip.text = element_text(size = 9, face = "bold")
+  )
 
 
 
