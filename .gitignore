@@ -1,9 +1,6 @@
 # Ignore credentials
 code/gsheet-creds.json
 
-# Ignore data folder
-data/
-
 # Ignore temporary or notebook checkpoint files
 *.ipynb_checkpoints/
 
@@ -12,3 +9,9 @@ slurm/*
 logs/*
 download_logs/
 
+# Ignore everything in data/
+data/*
+
+# Keep pipeline folder and its contents
+!data/pipeline/
+!data/pipeline/**
