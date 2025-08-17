@@ -14,18 +14,52 @@ pred_df = read_csv("data/pipeline/predictions_with_shap.csv")
 ant_excel_df = read_excel("data/raw/model_db_annotations.xlsx") %>%
   clean_names() %>%
   filter(row_id <= 1300)
-ant_long_df = read_csv("data/pipeline/ant_with_excluded_samples.csv")
+ant_long_df = read_csv("data/pipeline/ant_with_excluded_samples.csv") 
 ant_pre_df = read_csv("data/pipeline/preprocessed.csv")
 ant_pre_df = read_csv("data/pipeline/preprocessed.csv")
+cw_df = read_csv("data/pipeline/crosswalk.csv") %>% select(-type)
+
 
 
 # GLOBAL VARIABLES --------------------------------------------------------
-INTERNAL_VALIDATION_SET = ant_pre_df$file_hash
-EXTERNAL_VADLIATION_SET = ant_excel_df %>%
-  filter(row_id > 1000) %>%
+
+TRAIN = cw_df %>%
+  filter(split == "train") %>%
+  pull(file_hash)
+
+INT_VALIDATION = cw_df %>%
+  filter(split == "test") %>%
+  pull(file_hash)
+
+EXT_VALIDATION = ant_pre_df %>% 
+  select(file_hash, rare_subtype) %>%
+  filter(rare_subtype != TRUE) %>%
+  filter(!file_hash %in% c(TRAIN, INT_VALIDATION)) %>%
   pull(file_hash)
 
 
+new_subtype_labels <- ant_pre_df %>%
+  filter(file_hash %in% c(TRAIN, INT_VALIDATION, EXT_VALIDATION)) %>%
+  select(file_hash, new_subtype_label) 
+
+ant_excel_df2 = ant_excel_df %>%
+  filter(file_hash %in% c(TRAIN, INT_VALIDATION, EXT_VALIDATION)) %>%
+  clean_names() %>%
+  select(row_id, file_hash, type, subtype_confidence, annotated, notes_free_text, subtype_1) %>% 
+  distinct() %>%
+  left_join(new_subtype_labels, by="file_hash") %>%
+  left_join(cw_df, by="file_hash") %>%
+  mutate(split = case_when(split == "train" ~ "train",
+                           split == "test" ~ "internal validation",
+                           file_hash %in% EXT_VALIDATION ~ "external_validation"))
+
+table1(~type+new_subtype_label |split, data= ant_excel_df2)
+
+
+
+# GLOBAL VARIABLES --------------------------------------------------------
+
+names(cw_df)
 
 # PLOTS  -----------------------------------------------------------
 plot_top_features(xgb_feat_df)
