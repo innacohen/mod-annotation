@@ -4,11 +4,8 @@
 
 library(tidyverse)
 library(naniar)
-#library(table1)
-
-
-#install.packages(c("googledrive", "googlesheets4", "gargle", "httr2"))
-
+library(table1)
+library(janitor)
 # FUNCTIONS ---------------------------------------------------------------
 
 # Concise output for followup table (only Yes's, instead of Yes/No)
