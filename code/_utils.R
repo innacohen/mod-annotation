@@ -160,24 +160,25 @@ plot_db <- function(
     gpt_match_col = "gpt_subtype_match",
     family_fun = infer_family,   # function(char) -> family
     family_order = c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither"),
-    order_by = c("sens_xgb", "sens_gpt", "delta", "abs_delta"),  # abs_delta = biggest gap within family
-    facet_by_family = FALSE,
+    order_by = c("delta", "sens_xgb", "sens_gpt", "abs_delta"),  # delta = biggest difference (GPT-XGB) first
+    facet_by_family = TRUE,      # Changed default to TRUE for grouping by family
     labels = c("full", "minimal"),      # legend & facet strip labels
     style = c("dumbbell", "winner"),    # point styling
-    annotate = c("none", "percent", "counts"),  # <-- mutually exclusive
+    annotate = c("percent", "none", "counts"),  # Changed default to "percent" for inline labels
+    show_grid = TRUE,                           # Option to show/hide grid lines
     title = "Subtype Sensitivity: XGB vs GPT",
     subtitle = NULL,
     x_lab = "Sensitivity (TP %)",
     y_lab = NULL,
-    xgb_color = "steelblue",
-    gpt_color = "firebrick",
+    xgb_color = "#FFA273",       # Changed from "steelblue" to orange
+    gpt_color = "#0070C0",       # Changed from "firebrick" to blue
     tie_color = "grey50",
     line_color = "#999999",
     point_outline = "#333333",
-    base_size = 14,
+    base_size = 16,              # Increased from 14 for larger base font
     # Percent annotation controls (used when annotate == "percent")
     percent_accuracy = 1,
-    label_size = 3,
+    label_size = 4,          # Increased from 3 to 4 for larger % labels
     hjust_winner = -0.3,
     hjust_loser  =  1.3,
     hjust_tie    = -0.3,
@@ -239,8 +240,16 @@ plot_db <- function(
     dplyr::left_join(winner_df, by = truth_col) %>%
     dplyr::mutate(family = factor(.data$family, levels = family_order))
   
-  # --- Ordering by choice (robust) ---
-  if (order_by == "abs_delta") {
+  # --- Ordering by choice (robust) - Modified to prioritize "delta" ---
+  if (order_by == "delta") {
+    # Sort by difference (GPT - XGB) with biggest positive differences first
+    ord <- counts_long %>%
+      dplyr::distinct(!!rlang::sym(truth_col), family) %>%
+      dplyr::left_join(winner_df, by = truth_col) %>%
+      dplyr::arrange(family, dplyr::desc(.data$diff))
+    levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col))
+    
+  } else if (order_by == "abs_delta") {
     sens_long <- sens_long %>%
       dplyr::group_by(family) %>%
       dplyr::arrange(dplyr::desc(abs(.data$diff)), .by_group = TRUE) %>%
@@ -256,29 +265,22 @@ plot_db <- function(
       dplyr::arrange(.data$family, dplyr::desc(.data$sensitivity))
     levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col)) %>% unique()
     
-  } else if (order_by == "sens_gpt") {
+  } else { # "sens_gpt"
     ord <- sens_long %>%
       dplyr::filter(.data$model == "GPT") %>%
       dplyr::arrange(.data$family, dplyr::desc(.data$sensitivity))
     levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col)) %>% unique()
-    
-  } else { # "delta"
-    ord <- counts_long %>%
-      dplyr::distinct(!!rlang::sym(truth_col), family) %>%
-      dplyr::left_join(winner_df, by = truth_col) %>%
-      dplyr::arrange(family, dplyr::desc(.data$diff))
-    levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col))
   }
   
   sens_long <- sens_long %>%
     dplyr::mutate(!!truth_col := factor(.data[[truth_col]], levels = rev(levs)))
   
   # Default subtitle for gap+facets
-  if (is.null(subtitle) && facet_by_family && order_by == "abs_delta") {
+  if (is.null(subtitle) && facet_by_family && order_by == "delta") {
     subtitle <- if (style == "winner") {
-      "Winner in color; loser hollow; ties in grey — ordered by biggest gap within each family"
+      ""
     } else {
-      "Ordered by biggest gap within each family"
+      ""
     }
   }
   
@@ -286,29 +288,33 @@ plot_db <- function(
   needs_extend <- annotate != "none"
   x_right <- if (needs_extend) x_max + extend_right_if_annotated else x_max
   
-  # --- Base plot ---
+  # --- Base plot with optional grid ---
   p <- ggplot2::ggplot(
     sens_long,
     ggplot2::aes(x = .data$sensitivity, y = .data[[truth_col]], group = .data[[truth_col]])
   ) +
-    ggplot2::geom_line(color = line_color, linewidth = 0.8) +
+    ggplot2::geom_line(color = line_color, linewidth = 0.5) +  # Thinner connectors (was 0.8)
     ggplot2::scale_x_continuous(
       labels = scales::percent_format(accuracy = percent_accuracy),
-      limits = c(x_min, x_right)
+      limits = c(x_min, x_right),
+      breaks = if (show_grid) c(0, 0.25, 0.5, 0.75, 1.0) else NULL  # Conditional grid breaks
     ) +
     ggplot2::labs(title = title, subtitle = subtitle, x = x_lab, y = y_lab) +
     ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
       panel.grid.major.y = ggplot2::element_blank(),
-      panel.grid.minor.x = ggplot2::element_blank()
+      panel.grid.minor.x = ggplot2::element_blank(),
+      panel.grid.minor.y = ggplot2::element_blank(),  # Remove minor y grid too
+      panel.grid.major.x = if (!show_grid) ggplot2::element_blank() else ggplot2::element_line(),  # Conditional major x grid
+      axis.text.y = ggplot2::element_text(color = "black")  # Make y-axis labels black
     )
   
-  # --- Points (by style) ---
+  # --- Points (by style) - Thicker points ---
   if (style == "dumbbell") {
     p <- p +
       ggplot2::geom_point(
         ggplot2::aes(fill = .data$model),
-        shape = 21, size = 4, color = point_outline, stroke = 1
+        shape = 21, size = 5, color = point_outline, stroke = 1  # Increased size from 4 to 5
       ) +
       ggplot2::scale_fill_manual(values = c("XGB" = xgb_color, "GPT" = gpt_color), name = "Model")
   } else {
@@ -317,56 +323,34 @@ plot_db <- function(
       ggplot2::geom_point(
         data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
         ggplot2::aes(fill = .data$model),
-        shape = 21, size = 4, color = "black", stroke = 1
+        shape = 21, size = 5, color = "black", stroke = 1  # Increased size from 4 to 5
       ) +
       ggplot2::scale_fill_manual(values = winner_colors, guide = "none") +
       ggplot2::geom_point(
         data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
-        shape = 21, size = 2.5, fill = "white", color = "black", stroke = 0.8
+        shape = 21, size = 3.5, fill = "white", color = "black", stroke = 0.8  # Increased size from 2.5 to 3.5
       ) +
       ggplot2::geom_point(
         data = dplyr::filter(sens_long, .data$winner == "Tie"),
-        shape = 21, size = 4, fill = tie_color, color = "black", stroke = 1
+        shape = 21, size = 5, fill = tie_color, color = "black", stroke = 1  # Increased size from 4 to 5
       )
   }
   
-  # --- Annotations (mutually exclusive) ---
+  # --- Annotations - Modified to show only winner labels ---
   if (annotate == "percent") {
     p <- p +
       ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
+        data = dplyr::filter(sens_long, .data$model == .data$winner),  # Only winners get labels
         ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
-        hjust = hjust_winner, size = label_size, color = "black"
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
-        ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
-        hjust = hjust_loser, size = label_size, color = "black"
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$winner == "Tie"),
-        ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
-        hjust = hjust_tie, size = label_size, color = "black"
+        hjust = hjust_winner, size = label_size, color = "black", fontface = "bold"  # Added bold
       )
   } else if (annotate == "counts") {
     p <- p +
       ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
+        data = dplyr::filter(sens_long, .data$model == .data$winner),  # Only winners get labels
         ggplot2::aes(label = .data$label_counts),
         hjust = counts_hjust_winner, size = counts_label_size, color = "black",
-        nudge_x = counts_nudge_x_winner
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
-        ggplot2::aes(label = .data$label_counts),
-        hjust = counts_hjust_loser, size = counts_label_size, color = "black",
-        nudge_x = counts_nudge_x_loser
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$winner == "Tie"),
-        ggplot2::aes(label = .data$label_counts),
-        hjust = counts_hjust_tie, size = counts_label_size, color = "black",
-        nudge_x = counts_nudge_x_tie
+        nudge_x = counts_nudge_x_winner, fontface = "bold"  # Added bold
       )
   }
   
@@ -384,62 +368,6 @@ plot_db <- function(
   
   p
 }
-
-
-
-# TOP FEATURES BARPLOT ----------------------------------------------------
-
-# If you need to read it:
-# xgb_feat_df <- read_csv("feature_importance.csv", show_col_types = FALSE)
-# If you need to read it:
-# xgb_feat_df <- readr::read_csv("feature_importance.csv", show_col_types = FALSE)
-
-plot_top_features <- function(
-    xgb_feat_df,
-    top_n = 15,
-    legend = c("full", "minimal", "none"),  # "minimal"/"none" hide legend
-    base_size = 20,                          # increase for bigger text
-    sim_color = "steelblue",
-    text_color = "#6E7B8B"
-) {
-  legend <- match.arg(legend)
-  
-  df_plot <- xgb_feat_df %>%
-    dplyr::mutate(
-      feature_type = dplyr::if_else(stringr::str_detect(feature, "_simfeat"),
-                                    "Simulation-derived", "Text-derived")
-    ) %>%
-    dplyr::arrange(dplyr::desc(gain)) %>%
-    dplyr::slice_head(n = top_n) %>%
-    dplyr::mutate(feature = forcats::fct_reorder(feature, gain))
-  
-  p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = gain, y = feature, fill = feature_type)) +
-    ggplot2::geom_col() +
-    ggplot2::labs(
-      title = paste0("Top ", nrow(df_plot), " Features"),
-      x = "Gain importance",
-      y = "Feature",
-      fill = if (legend == "full") "Feature type" else NULL
-    ) +
-    ggplot2::scale_fill_manual(values = c("Simulation-derived" = sim_color,
-                                          "Text-derived" = text_color)) +
-    ggplot2::theme_minimal(base_size = base_size) +
-    theme(
-      panel.grid.major.y = ggplot2::element_blank(),
-      panel.grid.minor = ggplot2::element_blank(), 
-      axis.text.y = element_text(size = 14, color = "black"),
-      axis.title.y = element_text(size = 16, color = "black"),
-      axis.ticks.y = element_line(color = "black"),
-      legend.position = "bottom"
-    )
-
-  if (legend %in% c("minimal", "none")) {
-    p <- p + ggplot2::theme(legend.position = "none")
-  }
-  
-  p
-}
-
 
 # MARGIN ------------------------------------------------------------------
 

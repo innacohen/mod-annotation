@@ -2,12 +2,11 @@
 
 
 # IMPORT FUNCTIONS --------------------------------------------------------
-
+setwd("~/palmer_scratch/mod-extract")
 source("code/_utils.R")
 
 
 # IMPORT DATA -------------------------------------------------------------
-setwd("~/palmer_scratch/mod-extract")
 dd = read_csv("data/pipeline/feature_dd.csv")
 xgb_feat_df = read_csv("data/pipeline/feature_importance_global.csv") 
 pred_df = read_csv("data/pipeline/predictions_with_shap.csv")
@@ -70,13 +69,26 @@ print(my_doc, target = fname) %>% invisible()
 # GLOBAL VARIABLES --------------------------------------------------------
 
 names(cw_df)
+table(pred_df$true_subtype)
+
+types = c("I Ca (HVA)", "I K (Ca-activated)", "I K (Rare)", "R Glutamate" "I Other (Leak)")
+pred_df2 = pred_df %>% dplyr::filter(true_type %in% types)
+
+I Ca (T-type)"
+
+
+
 
 # PLOTS  -----------------------------------------------------------
 plot_top_features(xgb_feat_df)
 plot_arrow(pred_df)
-plot_db(pred_df, order_by = "sens_xgb", facet_by_family = FALSE)
-plot_db(pred_df, order_by = "abs_delta", facet_by_family = TRUE)
-plot_db(pred_df, order_by = "abs_delta", facet_by_family = TRUE, labels = "minimal")
+
+View(pred_df)
+
+plot_db(pred_df2, order_by = "sens_xgb", facet_by_family = FALSE)
+plot_db(pred_df2, order_by = "abs_delta", facet_by_family = FALSE, labels="minimal")
+plot_db(pred_df2, order_by = "abs_delta", facet_by_family = FALSE, labels = "minimal", show_grid=T, label_size=4, hjust_winner=-0.27)
+
 plot_db(pred_df, style = "winner", order_by = "abs_delta", facet_by_family = TRUE, labels = "minimal")
 plot_db(pred_df, style = "winner", order_by = "abs_delta",
         facet_by_family = TRUE, labels = "minimal",
@@ -87,4 +99,7 @@ plot_db(pred_df, style = "dumbbell", order_by = "sens_gpt",
 plot_top_features(xgb_feat_df, top_n = 15, base_size=20, legend="minimal")
 # print(p)
 # ggsave("top_features.png", p, width = 8, height = 5, dpi = 300)
+
+
+
 
