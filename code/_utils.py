@@ -10,6 +10,7 @@ from pathlib import Path
 import requests
 import logging
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs 
 
 # === Data Handling ===
 import pandas as pd
@@ -108,17 +109,6 @@ else:
 
 
 
-# Function to check if content contains an INCLUDE statement
-def get_include(content):
-    if content is None:
-        return None
-    
-    # Regular expression to match INCLUDE statements in .mod files
-    include_pattern = re.compile(r'^\s*INCLUDE\s+(.+?)(?:\s|$)', re.MULTILINE | re.IGNORECASE)
-    match = include_pattern.search(content)
-    
-    return match.group(1) if match else None
-
 # Function to convert ModelDB URL to direct download URL
 def get_direct_download_url(url):
     match = re.search(r"https://modeldb\.science/(\d+)\?tab=2&file=(.+)", url)
@@ -126,6 +116,110 @@ def get_direct_download_url(url):
         model_id, file_path = match.groups()
         return f"https://modeldb.science/getModelFile?model={model_id}&file={file_path}", file_path
     return None, None  # Return None if the URL doesn't match the expected pattern
+
+def get_includes(content):
+    """
+    Extracts all include file names from NEURON mod file content.
+    Ignores INCLUDE words inside comments.
+    
+    Parameters:
+    - content (str): The content of the .mod file.
+    
+    Returns:
+    - list: A list of include files, or an empty list if none are found.
+    """
+    if content is None:
+        return []
+    
+    # Remove COMMENT blocks to avoid false positives
+    comment_pattern = re.compile(r'COMMENT.*?ENDCOMMENT', re.DOTALL)
+    content_no_comments = comment_pattern.sub('', content)
+    
+    # Remove single line comments that start with :
+    content_no_comments = re.sub(r':.*$', '', content_no_comments, flags=re.MULTILINE)
+    
+    # Match INCLUDE statements in .mod files
+    include_pattern = re.compile(r'^\s*INCLUDE\s+(.+?)(?:\s|$)', re.MULTILINE | re.IGNORECASE)
+    matches = include_pattern.findall(content_no_comments)
+    
+    # Clean up any quotes around filenames
+    cleaned_matches = [m.strip('"\'') for m in matches]
+    
+    return cleaned_matches if cleaned_matches else []
+
+def create_include_download_url(mod_url, include_file):
+    """
+    Generate a download URL for an include file based on the MOD file URL.
+    
+    Parameters:
+    - mod_url (str): URL of the MOD file
+    - include_file (str): Name of the include file
+    
+    Returns:
+    - str: Download URL for the include file, or None if it can't be generated
+    """
+    # Parse the URL to extract model ID and path
+    parsed_url = urlparse(mod_url)
+    
+    # If URL is already in download format, extract model_id and file path
+    if 'getModelFile' in parsed_url.path:
+        query_params = parse_qs(parsed_url.query)
+        if 'model' in query_params and 'file' in query_params:
+            model_id = query_params['model'][0]
+            file_path = query_params['file'][0]
+            
+            # Get the directory part of the file path
+            if '/' in file_path:
+                dir_path = '/'.join(file_path.split('/')[:-1])
+            else:
+                dir_path = ''
+                
+            # Construct the download URL for the include file
+            download_url = f"https://modeldb.science/getModelFile?model={model_id}&file={dir_path}/{include_file}"
+            return download_url
+    else:
+        # Extract model ID from the URL path
+        model_id = parsed_url.path.split('/')[-1]
+        
+        # Extract file path from query parameters
+        query_params = parse_qs(parsed_url.query)
+        
+        if 'file' in query_params:
+            file_path = query_params['file'][0]
+            
+            # Get the directory part of the file path
+            if '/' in file_path:
+                dir_path = '/'.join(file_path.split('/')[:-1])
+            else:
+                dir_path = ''
+                
+            # Construct the download URL for the include file
+            download_url = f"https://modeldb.science/getModelFile?model={model_id}&file={dir_path}/{include_file}"
+            return download_url
+    
+    return None
+
+def download_file(url, output_path):
+    """
+    Download a file from the given URL and save it to the output path.
+    
+    Returns:
+    - bool: True if successful, False if failed
+    - str: Content of the file if successful, None if failed
+    """
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        
+        with open(output_path, "wb") as f:
+            f.write(response.content)
+        
+        return True, response.content
+    except Exception as e:
+        error_msg = f"Error downloading {url}: {e}"
+        logging.error(error_msg)
+        return False, None
+
 
 
 def plot_countplot(
