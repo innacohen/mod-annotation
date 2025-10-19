@@ -1,21 +1,16 @@
-#%%
 #Import functions and set global variables
 from _utils import *
-LOG_DIR = PROJECT_ROOT_DIR / "logs"
-DATA_DIR = PROJECT_ROOT_DIR / "data" / "raw"
-OUTPUT_JSON = os.path.join(DATA_DIR, "model_db_metadata.json")
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
-LOG_FILE = os.path.join(LOG_DIR, f"model_db_download_errors_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+OUTPUT_JSON_FP = os.path.join(DATA_DIR, "model_db_metadata.json")
+LOG_FILE_FP = os.path.join(LOGS_DIR, f"model_db_download_errors_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 logging.basicConfig(
-    filename=LOG_FILE,
+    filename=LOG_FILE_FP,
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
-#%%
+
 # Load dataset from Excel
-df = pd.read_excel("../annotations/model_db_annotations.xlsx")
+df = pd.read_excel(os.path.join(ANNOTATIONS_DIR, "model_db_annotations.xlsx"))
 
 # Get annotated samples
 ANNOTATED_SAMPLES = df.query("annotated=='y'")["file_hash"].tolist()
@@ -97,11 +92,11 @@ for _, row in tqdm(annotated_df.iterrows(), total=len(annotated_df), desc="Downl
     downloaded_data.append(entry_data)
 
 # Save all downloaded data to JSON
-with open(OUTPUT_JSON, "w", encoding="utf-8") as json_file:
+with open(OUTPUT_JSON_FP, "w", encoding="utf-8") as json_file:
     json.dump(downloaded_data, json_file, indent=4)
 
 # Log completion
-completion_message = f"\nModelDB metadata saved in {OUTPUT_JSON}"
+completion_message = f"\nModelDB metadata saved in {OUTPUT_JSON_FP}"
 print(completion_message)
 logging.info(completion_message)
 
@@ -115,7 +110,7 @@ print(stats_message)
 logging.info(stats_message)
 
 if failed_download_count > 0:
-    print(f"Some downloads failed. Check log file: {LOG_FILE}")
+    print(f"Some downloads failed. Check log file: {LOG_FILE_FP}")
     logging.info("Download process completed with errors")
 else:
     logging.info("Download process completed successfully")

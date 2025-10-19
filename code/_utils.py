@@ -78,18 +78,31 @@ from feature_engine.wrappers import SklearnTransformerWrapper
 # === Pandas Display Settings ===
 pd.set_option("display.max_columns", None)
 
+# === Global Variables ===
 
-PROJECT_ROOT_DIR = Path(__file__).parent.parent  # Go up one level from script location
-ANNOTATIONS_DIR = PROJECT_ROOT_DIR / "annotations" 
+PROJECT_DIR = Path(__file__).parent.parent
+DATA_DIR = PROJECT_DIR / "data"
+RAW_DATA_DIR = DATA_DIR / "raw"
+CLEAN_DATA_DIR = DATA_DIR / "clean"
+ANNOTATIONS_DIR = PROJECT_DIR / "annotations"
+LOGS_DIR = PROJECT_DIR / "logs"
+OUTPUT_DIR = PROJECT_DIR / "output"
+FIGURES_DIR = PROJECT_DIR / "figures"
 
 
 #todo
-# # Set up credentials and connect to Google Sheets
+# Set up credentials and connect to Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-# Move up one directory level to find the secret folder
-creds_path = os.path.join("..", "secret", "gsheet-creds.json")
-creds = ServiceAccountCredentials.from_json_keyfile_name(creds_path, scope)
-client = gspread.authorize(creds)
+# Use absolute path from project root
+creds_path = PROJECT_DIR / "secret" / "gsheet-creds.json"
+# Check if the credentials file exists
+if not creds_path.exists():
+    print(f"Warning: Google Sheets credentials file not found at {creds_path}")
+    print("Google Sheets functionality will not be available")
+    client = None
+else:
+    creds = ServiceAccountCredentials.from_json_keyfile_name(str(creds_path), scope)
+    client = gspread.authorize(creds)
 
 
 
