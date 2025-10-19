@@ -81,9 +81,10 @@ pd.set_option("display.max_columns", None)
 
 # Set up credentials and connect to Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("gsheet-creds.json", scope)
+# Move up one directory level to find the secret folder
+creds_path = os.path.join("..", "secret", "gsheet-creds.json")
+creds = ServiceAccountCredentials.from_json_keyfile_name(creds_path, scope)
 client = gspread.authorize(creds)
-
 
 def get_direct_download_url(url):
     match = re.search(r"https://modeldb\.science/(\d+)\?tab=2&file=(.+)", url)
