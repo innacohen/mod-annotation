@@ -79,8 +79,12 @@ from feature_engine.wrappers import SklearnTransformerWrapper
 pd.set_option("display.max_columns", None)
 
 
+PROJECT_ROOT_DIR = Path(__file__).parent.parent  # Go up one level from script location
+ANNOTATIONS_DIR = PROJECT_ROOT_DIR / "annotations" 
+
+
 #todo
-# Set up credentials and connect to Google Sheets
+# # Set up credentials and connect to Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 # Move up one directory level to find the secret folder
 creds_path = os.path.join("..", "secret", "gsheet-creds.json")
@@ -89,136 +93,24 @@ client = gspread.authorize(creds)
 
 
 
+# Function to check if content contains an INCLUDE statement
 def get_include(content):
-    """
-    Extracts the filename in the INCLUDE statement from MOD file content, ignoring comments.
-    
-    Args:
-        content (str): The text content of the MOD file.
-        
-    Returns:
-        list or None: A list of extracted INCLUDE filenames, or None if not found.
-    """
-    if pd.isna(content):  # Handle missing content
+    if content is None:
         return None
     
-    # Find all occurrences of INCLUDE, ensuring commented-out ones (with ':') are ignored
-    matches = re.findall(r"^\s*INCLUDE\s+\"([^\"]+)\"", content, re.MULTILINE)
+    # Regular expression to match INCLUDE statements in .mod files
+    include_pattern = re.compile(r'^\s*INCLUDE\s+(.+?)(?:\s|$)', re.MULTILINE | re.IGNORECASE)
+    match = include_pattern.search(content)
     
-    return matches if matches else None
+    return match.group(1) if match else None
 
+# Function to convert ModelDB URL to direct download URL
 def get_direct_download_url(url):
-    """
-    Converts a ModelDB URL to a direct download URL.
-    
-    Args:
-        url (str): Original ModelDB URL
-        
-    Returns:
-        tuple: (download_url, file_path, model_id) or (None, None, None) if conversion fails
-    """
     match = re.search(r"https://modeldb\.science/(\d+)\?tab=2&file=(.+)", url)
     if match:
         model_id, file_path = match.groups()
-        return f"https://modeldb.science/getModelFile?model={model_id}&file={file_path}", file_path, model_id
-    return None, None, None  # Return None if the URL doesn't match the expected pattern
-
-def get_include_url(model_id, main_file_path, include_file):
-    """
-    Builds the URL for an include file based on the main file's path.
-    
-    Args:
-        model_id (str): The ModelDB model ID
-        main_file_path (str): Path of the main MOD file
-        include_file (str): Name of the include file
-        
-    Returns:
-        str: URL for the include file
-    """
-    # Get directory part of the main file path
-    directory = os.path.dirname(main_file_path)
-    
-    # If directory is not empty, ensure it ends with a slash
-    if directory and not directory.endswith('/'):
-        directory += '/'
-        
-    # Construct include file path
-    include_path = f"{directory}{include_file}"
-    
-    return f"https://modeldb.science/getModelFile?model={model_id}&file={include_path}"
-
-def extract_model_info(url):
-    """
-    Extracts model ID and directory information from a ModelDB download URL.
-    
-    Args:
-        url (str): ModelDB download URL
-        
-    Returns:
-        tuple: (model_id, directory, filename) or (None, None, None) if extraction fails
-    """
-    match = re.search(r"https://modeldb\.science/getModelFile\?model=(\d+)&file=(.*?)([^/]+)$", url)
-    if match:
-        model_id = match.group(1)
-        directory = match.group(2)  # This will include trailing slash
-        filename = match.group(3)
-        return model_id, directory, filename
-    return None, None, None
-
-def try_alternative_include_url(model_id, file_path, include_file):
-    """
-    Generates an alternative URL for an include file by looking in the parent directory.
-    
-    Args:
-        model_id (str): The ModelDB model ID
-        file_path (str): Path of the main file
-        include_file (str): Name of the include file
-        
-    Returns:
-        str: Alternative URL for the include file
-    """
-    directory = os.path.dirname(file_path)
-    
-    # Move up one directory level
-    if '/' in directory:
-        parent_dir = '/'.join(directory.split('/')[:-1])
-    else:
-        parent_dir = ''
-    
-    # Ensure parent directory ends with slash if not empty
-    if parent_dir and not parent_dir.endswith('/'):
-        parent_dir += '/'
-        
-    return f"https://modeldb.science/getModelFile?model={model_id}&file={parent_dir}{include_file}"
-
-def download_and_save_file(url, output_path, timeout=10):
-    """
-    Downloads a file from a URL and saves it to the specified path.
-    
-    Args:
-        url (str): URL to download from
-        output_path (str): Path to save the file to
-        timeout (int): Request timeout in seconds
-        
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        response = requests.get(url, timeout=timeout)
-        response.raise_for_status()
-        
-        with open(output_path, "wb") as f:
-            content = response.content
-            # Ensure content is properly stripped of whitespace
-            if isinstance(content, bytes):
-                f.write(content.strip())
-            else:
-                f.write(content.encode('utf-8').strip())
-        
-        return True
-    except Exception as e:
-        logging.error(f"Error downloading {url}: {e}")
-        return False
+        return f"https://modeldb.science/getModelFile?model={model_id}&file={file_path}", file_path
+    return None, None  # Return None if the URL doesn't match the expected pattern
 
 
 def plot_countplot(
