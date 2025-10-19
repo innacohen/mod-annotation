@@ -199,9 +199,14 @@ def create_include_download_url(mod_url, include_file):
     
     return None
 
-def download_file(url, output_path):
+def download_file(url, output_path, file_hash=None):
     """
     Download a file from the given URL and save it to the output path.
+    
+    Parameters:
+    - url (str): URL to download from
+    - output_path (str): Path to save the file to
+    - file_hash (str, optional): Hash of the file for error logging
     
     Returns:
     - bool: True if successful, False if failed
@@ -216,8 +221,11 @@ def download_file(url, output_path):
         
         return True, response.content
     except Exception as e:
-        error_msg = f"Error downloading {url}: {e}"
-        logging.error(error_msg)
+        error_msg = f"Error downloading from {url}: {e}"
+        if file_hash:
+            logger.error(error_msg, extra={'file_hash': file_hash})
+        else:
+            logger.error(error_msg, extra={'file_hash': 'N/A'})
         return False, None
 
 
