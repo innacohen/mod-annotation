@@ -228,6 +228,29 @@ def download_file(url, output_path, file_hash=None):
             logger.error(error_msg, extra={'file_hash': 'N/A'})
         return False, None
 
+# Function to extract model_id from a ModelDB URL
+def extract_model_id(url):
+    """
+    Extract the model_id from a ModelDB URL.
+    
+    Parameters:
+    - url (str): URL from ModelDB
+    
+    Returns:
+    - str or None: The model_id if found, None otherwise
+    """
+    # For direct download URLs with model parameter (e.g. https://modeldb.science/getModelFile?model=187604&file=...)
+    if 'getModelFile' in url:
+        match = re.search(r'model=(\d+)', url)
+        if match:
+            return match.group(1)
+    
+    # For regular ModelDB URLs (e.g. https://modeldb.science/187604?tab=2&file=...)
+    match = re.search(r'modeldb\.science/(\d+)', url)
+    if match:
+        return match.group(1)
+    
+    return None
 
 
 def plot_countplot(
