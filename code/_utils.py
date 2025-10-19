@@ -7,6 +7,7 @@ import ast
 import pickle
 import random
 from pathlib import Path
+import requests
 
 # === Data Handling ===
 import pandas as pd

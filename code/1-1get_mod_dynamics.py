@@ -1,6 +1,8 @@
 import os
 import sys
 import re
+import pandas as pd
+
 
 def get_baseline_temperature(mod_file_path):
     """Extract baseline temperature from mod file by looking for celsius +/- constant expressions"""
@@ -264,7 +266,6 @@ def run_sim(mod_file_path, v, doplot=False):
 #    os.system('nrnivmodl')
 
 
-import pandas as pd
 
 if __name__ == "__main__":
     mod_file_path = sys.argv[1]
