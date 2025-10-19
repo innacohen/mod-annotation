@@ -1,7 +1,12 @@
 #Import functions and set global variables
 from _utils import *
 import re
-OUTPUT_JSON_FP = os.path.join(DATA_DIR, "model_db_metadata.json")
+import json
+import requests
+from datetime import datetime
+from tqdm import tqdm
+
+OUTPUT_JSON_FP = os.path.join(RAW_DATA_DIR, "model_db_metadata.json")
 LOG_FILE_FP = os.path.join(LOGS_DIR, f"model_db_download_errors_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 
 # Set up logging with file_hash included in the format, but only at ERROR level
@@ -16,30 +21,6 @@ logging.basicConfig(
 logger = logging.getLogger('modeldb_download')
 logger.handlers = logging.getLogger().handlers
 
-# Function to extract model_id from a ModelDB URL
-def extract_model_id(url):
-    """
-    Extract the model_id from a ModelDB URL.
-    
-    Parameters:
-    - url (str): URL from ModelDB
-    
-    Returns:
-    - str or None: The model_id if found, None otherwise
-    """
-    # For direct download URLs with model parameter (e.g. https://modeldb.science/getModelFile?model=187604&file=...)
-    if 'getModelFile' in url:
-        match = re.search(r'model=(\d+)', url)
-        if match:
-            return match.group(1)
-    
-    # For regular ModelDB URLs (e.g. https://modeldb.science/187604?tab=2&file=...)
-    match = re.search(r'modeldb\.science/(\d+)', url)
-    if match:
-        return match.group(1)
-    
-    return None
-
 # Load dataset from Excel
 df = pd.read_excel(os.path.join(ANNOTATIONS_DIR, "model_db_annotations.xlsx"))
 
@@ -47,16 +28,14 @@ df = pd.read_excel(os.path.join(ANNOTATIONS_DIR, "model_db_annotations.xlsx"))
 ANNOTATED_SAMPLES = df.query("annotated=='y'")["file_hash"].tolist()
 print(f"Found {len(ANNOTATED_SAMPLES)} annotated samples")
 
-
 # Failed downloads counter
 failed_download_count = 0
 failed_file_hashes = []  # Track failed hashes
 
 # Create data directory if it doesn't exist
-if not os.path.exists(DATA_DIR):
-    print(f"Creating directory: {DATA_DIR}")
-    os.makedirs(DATA_DIR)
-
+if not os.path.exists(RAW_DATA_DIR):
+    print(f"Creating directory: {RAW_DATA_DIR}")
+    os.makedirs(RAW_DATA_DIR)
 
 # Filter to keep only annotated samples
 annotated_df = df[df["file_hash"].isin(ANNOTATED_SAMPLES)].copy()
@@ -76,6 +55,9 @@ for _, row in tqdm(annotated_df.iterrows(), total=len(annotated_df), desc="Downl
     # Extract model_id from the URL
     model_id = extract_model_id(url)
     
+    # Get model creation date from the API
+    created_date = get_model_creation_date(model_id) if model_id else None
+    
     direct_url, file_path = get_direct_download_url(url)
     
     # Default data for this entry
@@ -86,6 +68,7 @@ for _, row in tqdm(annotated_df.iterrows(), total=len(annotated_df), desc="Downl
         "count": row["count"],
         "url": url,
         "model_id": model_id,  # Add the model_id to the entry data
+        "created_date": created_date,  # Add the creation date to the entry data
         "download_url": direct_url,
         "filename": file_path,
         "content": None,
@@ -108,7 +91,6 @@ for _, row in tqdm(annotated_df.iterrows(), total=len(annotated_df), desc="Downl
             entry_data["content"] = response.text
             
             # Check for includes and update has_include field
-            # FIX: get_includes returns a list, so check if the list has any elements
             include_files = get_includes(response.text)
             entry_data["has_include"] = 1 if include_files and len(include_files) > 0 else 0
             

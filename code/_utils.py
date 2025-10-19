@@ -228,6 +228,7 @@ def download_file(url, output_path, file_hash=None):
             logger.error(error_msg, extra={'file_hash': 'N/A'})
         return False, None
 
+
 # Function to extract model_id from a ModelDB URL
 def extract_model_id(url):
     """
@@ -252,6 +253,39 @@ def extract_model_id(url):
     
     return None
 
+# Function to get model creation date from ModelDB API
+def get_model_creation_date(model_id):
+    """
+    Get the creation date of a ModelDB model using the API.
+    
+    Parameters:
+    - model_id (str): The model ID
+    
+    Returns:
+    - str or None: The creation date in ISO format if found, None otherwise
+    """
+    if not model_id:
+        return None
+        
+    api_url = f"https://modeldb.science/api/v1/models/{model_id}?indent=4"
+    
+    try:
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        
+        # Parse the JSON response
+        model_data = response.json()
+        
+        # Extract the creation date
+        if 'created' in model_data:
+            return model_data['created']
+        
+        return None
+    except Exception as e:
+        # Log the error but continue with the process
+        logger.error(f"Error fetching model creation date for model_id {model_id}: {e}", 
+                    extra={'file_hash': 'API_ERROR'})
+        return None
 
 def plot_countplot(
     df,
