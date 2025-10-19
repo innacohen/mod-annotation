@@ -26,6 +26,8 @@ from plotnine import *
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+from urllib.parse import urljoin, urlparse
+from bs4 import BeautifulSoup
 
 # === Google Sheets Integration ===
 import gspread
