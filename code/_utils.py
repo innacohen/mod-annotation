@@ -8,6 +8,8 @@ import pickle
 import random
 from pathlib import Path
 import requests
+import logging
+from datetime import datetime
 
 # === Data Handling ===
 import pandas as pd
@@ -81,6 +83,18 @@ pd.set_option("display.max_columns", None)
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_name("gsheet-creds.json", scope)
 client = gspread.authorize(creds)
+
+
+def get_direct_download_url(url):
+    match = re.search(r"https://modeldb\.science/(\d+)\?tab=2&file=(.+)", url)
+    if match:
+        model_id, file_path = match.groups()
+        return f"https://modeldb.science/getModelFile?model={model_id}&file={file_path}", file_path
+    return None, None  # Return None if the URL doesn't match the expected pattern
+
+def fetch_mod_metadata(row_id, file_hash, raw_sha, count, url):
+    global failed_download_count
+    direct_url, file_path = get_direct_download_url(url)
 
 
 def plot_countplot(

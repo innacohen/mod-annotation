@@ -4,17 +4,13 @@ code/gsheet-creds.json
 # Ignore temporary or notebook checkpoint files
 *.ipynb_checkpoints/
 
-# Ignore these folders too
-slurm/*
-logs/*
-download_logs/
 
 # Ignore everything in data/
 data/*
+secret/*
+output/* 
+logs/*
 
-# Keep pipeline folder and its contents
-!data/pipeline/
-!data/pipeline/**
 
 # Ignore compiled objects
 *.rds
