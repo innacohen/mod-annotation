@@ -1,4 +1,4 @@
-from _utils import *  # Importing your utility functions
+from _utils import *  
 import re
 import requests
 from tqdm import tqdm
