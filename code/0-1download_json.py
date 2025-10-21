@@ -7,19 +7,7 @@ from datetime import datetime
 from tqdm import tqdm
 
 OUTPUT_JSON_FP = os.path.join(RAW_DATA_DIR, "model_db_metadata.json")
-LOG_FILE_FP = os.path.join(LOGS_DIR, f"model_db_download_errors_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 
-# Set up logging with file_hash included in the format, but only at ERROR level
-logging.basicConfig(
-    filename=LOG_FILE_FP,
-    level=logging.ERROR,  # Changed from INFO to ERROR to only log errors
-    format='%(asctime)s - %(levelname)s - FILE_HASH: %(file_hash)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-# Create a custom logger that can accept extra parameters
-logger = logging.getLogger('modeldb_download')
-logger.handlers = logging.getLogger().handlers
 
 # Load dataset from Excel
 df = pd.read_excel(os.path.join(ANNOTATIONS_DIR, "model_db_annotations.xlsx"))
@@ -80,7 +68,6 @@ for _, row in tqdm(annotated_df.iterrows(), total=len(annotated_df), desc="Downl
     if not direct_url:
         error_msg = f"Invalid URL format: {url}"
         print(f"Skipping invalid URL: {url} (file_hash: {file_hash})")
-        logger.error(f"Row ID {row_id}: {error_msg}", extra={'file_hash': file_hash})
         entry_data["error_code"] = "Invalid URL"
         failed_download_count += 1
         failed_file_hashes.append(file_hash)
@@ -99,14 +86,12 @@ for _, row in tqdm(annotated_df.iterrows(), total=len(annotated_df), desc="Downl
         except requests.exceptions.HTTPError as http_err:
             error_msg = f"HTTP Error {response.status_code}: {http_err}"
             print(f"Failed to fetch {direct_url} - {error_msg} (file_hash: {file_hash})")
-            logger.error(f"Row ID {row_id}, URL: {direct_url} - {error_msg}", extra={'file_hash': file_hash})
             entry_data["error_code"] = str(response.status_code)
             failed_download_count += 1
             failed_file_hashes.append(file_hash)
         except requests.exceptions.RequestException as e:
             error_msg = f"Request Error: {str(e)}"
             print(f"Failed to fetch {direct_url}: {e} (file_hash: {file_hash})")
-            logger.error(f"Row ID {row_id}, URL: {direct_url} - {error_msg}", extra={'file_hash': file_hash})
             entry_data["error_code"] = "Request Error"
             failed_download_count += 1
             failed_file_hashes.append(file_hash)
@@ -142,10 +127,3 @@ if failed_download_count > 0:
         for fh in failed_file_hashes:
             f.write(f"{fh}\n")
     
-    # Log failed hashes at ERROR level
-    logger.error(f"Failed file hashes: {', '.join(failed_file_hashes)}", extra={'file_hash': 'FAILURES'})
-    print(f"Some downloads failed. Check log file: {LOG_FILE_FP}")
-    print(f"Failed file hashes written to: {failed_hashes_fp}")
-else:
-    print("All downloads completed successfully")
-# %%

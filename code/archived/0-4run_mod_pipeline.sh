@@ -13,5 +13,20 @@ module purge
 module load miniconda
 conda activate mod-annotation
 
-# Run compilation script
-bash compile_nmodl.sh
+# Download python scripts
+#CPU Efficiency: 15.93% of 00:01:53 core-walltime
+#Job Wall-clock time: 00:01:53
+#python 0-1download_json.py
+#python 0-2download_nmodl.py
+
+# Compile 
+#CPU Efficiency: 61.22% of 00:00:49 core-walltime
+#Job Wall-clock time: 00:00:49
+#bash 0-3compile_nmodl.sh
+
+
+
+
+
+
+

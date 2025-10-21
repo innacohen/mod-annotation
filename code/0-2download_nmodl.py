@@ -1,26 +1,4 @@
 from _utils import *  
-import re
-import requests
-from tqdm import tqdm
-import os
-import pandas as pd
-from datetime import datetime
-import logging
-from urllib.parse import urlparse, parse_qs
-
-# Set up logging
-LOG_FILE_FP = os.path.join(LOGS_DIR, f"nmodl_download_errors_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-logging.basicConfig(
-    filename=LOG_FILE_FP,
-    level=logging.ERROR,  # Only log errors
-    format='%(asctime)s - %(levelname)s - FILE_HASH: %(file_hash)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-# Create a custom logger that can accept extra parameters
-logger = logging.getLogger('nmodl_download')
-# Make sure the logger uses the same handlers as the root logger
-logger.handlers = logging.getLogger().handlers
 
 METADATA_FP = os.path.join(RAW_DATA_DIR, "model_db_metadata.json")
 ANNOTATIONS_FP = os.path.join(ANNOTATIONS_DIR, "model_db_annotations.xlsx")
@@ -96,14 +74,12 @@ for _, row in tqdm(filtered_df.iterrows(), total=len(filtered_df), desc="Downloa
                                     print(f"Downloaded include file: {include_file}")
                                 else:
                                     failed_include_count += 1
-                                    logger.error(f"Failed to download include file: {include_file} from URL: {include_url}",
-                                                extra={'file_hash': file_hash})
+                                    print(f"Failed to download include file: {include_file} from URL: {include_url} (file_hash: {file_hash})")
                             else:
                                 failed_include_count += 1
-                                logger.error(f"Could not generate URL for include file: {include_file} from MOD URL: {url}",
-                                            extra={'file_hash': file_hash})
+                                print(f"Could not generate URL for include file: {include_file} from MOD URL: {url} (file_hash: {file_hash})")
                 except Exception as e:
-                    logger.error(f"Error processing content for includes: {e}", extra={'file_hash': file_hash})
+                    print(f"Error processing content for includes: {e} (file_hash: {file_hash})")
         else:
             # Increment failure counter
             failed_mod_count += 1
@@ -111,14 +87,13 @@ for _, row in tqdm(filtered_df.iterrows(), total=len(filtered_df), desc="Downloa
             
     except Exception as e:
         error_msg = f"Error processing {url}: {e}"
-        logger.error(error_msg, extra={'file_hash': file_hash})
         print(f"Error processing {url}: {e} (file_hash: {file_hash})")
         
         # Increment failure counter
         failed_mod_count += 1
         failed_file_hashes.append(file_hash)
 
-# Log and print completion statistics
+# Print completion statistics
 stats_message = (
     f"\nTotal MOD files processed: {len(filtered_df)}, "
     f"Successfully downloaded: {successful_mod_count}, "
@@ -134,10 +109,6 @@ if failed_mod_count > 0:
     print(f"\nFailed file hashes ({len(failed_file_hashes)}):")
     for fh in failed_file_hashes:
         print(f"  {fh}")
-    logger.error(f"Failed file hashes: {', '.join(failed_file_hashes)}", extra={'file_hash': 'SUMMARY'})
-    print(f"See log file for details: {LOG_FILE_FP}")
-elif failed_include_count > 0:
-    print(f"Some include downloads failed. Check log file: {LOG_FILE_FP}")
 else:
     print("All downloads completed successfully")
 

@@ -86,6 +86,9 @@ pd.set_option("display.max_columns", None)
 PROJECT_DIR = Path(__file__).parent.parent
 DATA_DIR = PROJECT_DIR / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
+SIM_DATA_DIR = RAW_DATA_DIR / "sim_csvs"
+SIM_PLOT_DIR = RAW_DATA_DIR / "sim_plots"
+
 CLEAN_DATA_DIR = DATA_DIR / "clean"
 ANNOTATIONS_DIR = PROJECT_DIR / "annotations"
 LOGS_DIR = PROJECT_DIR / "logs"
@@ -199,36 +202,6 @@ def create_include_download_url(mod_url, include_file):
     
     return None
 
-def download_file(url, output_path, file_hash=None):
-    """
-    Download a file from the given URL and save it to the output path.
-    
-    Parameters:
-    - url (str): URL to download from
-    - output_path (str): Path to save the file to
-    - file_hash (str, optional): Hash of the file for error logging
-    
-    Returns:
-    - bool: True if successful, False if failed
-    - str: Content of the file if successful, None if failed
-    """
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        
-        with open(output_path, "wb") as f:
-            f.write(response.content)
-        
-        return True, response.content
-    except Exception as e:
-        error_msg = f"Error downloading from {url}: {e}"
-        if file_hash:
-            logger.error(error_msg, extra={'file_hash': file_hash})
-        else:
-            logger.error(error_msg, extra={'file_hash': 'N/A'})
-        return False, None
-
-
 # Function to extract model_id from a ModelDB URL
 def extract_model_id(url):
     """
@@ -282,9 +255,6 @@ def get_model_creation_date(model_id):
         
         return None
     except Exception as e:
-        # Log the error but continue with the process
-        logger.error(f"Error fetching model creation date for model_id {model_id}: {e}", 
-                    extra={'file_hash': 'API_ERROR'})
         return None
 
 def plot_countplot(
