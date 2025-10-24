@@ -1,5 +1,9 @@
 from _utils import *
 
+
+raw_json_df["model_id"].tolist()
+
+
 # base path
 base_path = DROPBOX_DIR
 working_dir = Path.cwd()
