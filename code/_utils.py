@@ -11,6 +11,7 @@ import requests
 import logging
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs 
+import zipfile
 
 # === Data Handling ===
 import pandas as pd
@@ -86,7 +87,8 @@ pd.set_option("display.max_columns", None)
 PROJECT_DIR = Path(__file__).parent.parent
 DATA_DIR = PROJECT_DIR / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
-NMODL_DATA_DIR = RAW_DATA_DIR / "nmodl"
+DROPBOX_DIR = RAW_DATA_DIR / "dropbox"
+
 SIM_DATA_DIR = RAW_DATA_DIR / "sim_csvs"
 SIM_PLOT_DIR = RAW_DATA_DIR / "sim_plots"
 
@@ -95,6 +97,8 @@ ANNOTATIONS_DIR = PROJECT_DIR / "annotations"
 LOGS_DIR = PROJECT_DIR / "logs"
 OUTPUT_DIR = PROJECT_DIR / "output"
 FIGURES_DIR = PROJECT_DIR / "figures"
+
+
 
 
 #todo
