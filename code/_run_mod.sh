@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -J mod-files
-#SBATCH -t 00:50:00
+#SBATCH -t 06:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --output=/nfs/roberts/project/pi_rm693/imc33/mod-annotation/logs/mod_pipeline_%j.out
 #SBATCH --error=/nfs/roberts/project/pi_rm693/imc33/mod-annotation/logs/mod_pipeline_%j.err

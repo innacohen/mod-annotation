@@ -1,4 +1,3 @@
-from _utils import *
 import os
 import sys
 import re
@@ -287,7 +286,7 @@ if __name__ == "__main__":
                 flat_features[f"{var}_{interval}_{key}"] = value
 
    # Save to CSV in target directory
-    output_dir = SIM_DATA_DIR
+    output_dir = SIM_PLOT_DIR
     os.makedirs(output_dir, exist_ok=True)
 
     basename = os.path.splitext(os.path.basename(mod_file_path))[0]

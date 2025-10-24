@@ -86,6 +86,7 @@ pd.set_option("display.max_columns", None)
 PROJECT_DIR = Path(__file__).parent.parent
 DATA_DIR = PROJECT_DIR / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
+NMODL_DATA_DIR = RAW_DATA_DIR / "nmodl"
 SIM_DATA_DIR = RAW_DATA_DIR / "sim_csvs"
 SIM_PLOT_DIR = RAW_DATA_DIR / "sim_plots"
 

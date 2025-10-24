@@ -1,51 +1,43 @@
 from _utils import *  
 
-METADATA_FP = os.path.join(RAW_DATA_DIR, "model_db_metadata.json")
+JSON_FP = os.path.join(RAW_DATA_DIR, "model_db_metadata.json")
 ANNOTATIONS_FP = os.path.join(ANNOTATIONS_DIR, "model_db_annotations.xlsx")
 NMODL_DIR = os.path.join(RAW_DATA_DIR, "nmodl")
-INCLUDE_DIR = os.path.join(NMODL_DIR, "includes")  # Separate directory for included files
+INCLUDE_DIR = os.path.join(NMODL_DIR, "includes")  
 os.makedirs(NMODL_DIR, exist_ok=True)
 os.makedirs(INCLUDE_DIR, exist_ok=True)
 
-# Counters for tracking progress
 successful_mod_count = 0
 failed_mod_count = 0
 include_files_found = 0
 successful_include_count = 0
 failed_include_count = 0
-already_downloaded_includes = set()  # Track which include files we've already downloaded
-failed_file_hashes = []  # List to track failed file hashes
+already_downloaded_includes = set()  
+failed_file_hashes = [] 
 
-# Load metadata
-print(f"Loading metadata from {METADATA_FP}")
-metadata_df = pd.read_json(METADATA_FP)
-print(f"Loaded metadata with {len(metadata_df)} entries")
+print(f"Loading metadata from {JSON_FP}")
+json_df = pd.read_json(JSON_FP)
+print(f"Loaded metadata with {len(json_df)} entries")
 
-# Load annotated samples from Excel file
 print(f"Loading annotations from {ANNOTATIONS_FP}")
 annotations_df = pd.read_excel(ANNOTATIONS_FP)
 annotated_hashes = annotations_df.query("annotated=='y'")["file_hash"].tolist()
 print(f"Found {len(annotated_hashes)} annotated samples")
 
-# Filter metadata to only include annotated samples
-filtered_df = metadata_df[metadata_df["file_hash"].isin(annotated_hashes)]
+filtered_df = json_df[json_df["file_hash"].isin(annotated_hashes)]
 print(f"Processing {len(filtered_df)} annotated MOD files")
 
-# Download the MOD files and their includes
 for _, row in tqdm(filtered_df.iterrows(), total=len(filtered_df), desc="Downloading MOD files"):
     try:
         url = row["download_url"]
         file_hash = row["file_hash"]
         
-        # Download and save as filehash.mod
         output_path = os.path.join(NMODL_DIR, f"{file_hash}.mod")
         success, content = download_file(url, output_path, file_hash)
         
         if success:
-            # Increment success counter
             successful_mod_count += 1
             
-            # Check for include files
             if content:
                 try:
                     content_text = content.decode('utf-8', errors='ignore')
@@ -60,7 +52,6 @@ for _, row in tqdm(filtered_df.iterrows(), total=len(filtered_df), desc="Downloa
                             if include_file in already_downloaded_includes:
                                 continue
                             
-                            # Generate download URL for the include file
                             include_url = create_include_download_url(url, include_file)
                             
                             if include_url:
@@ -81,7 +72,6 @@ for _, row in tqdm(filtered_df.iterrows(), total=len(filtered_df), desc="Downloa
                 except Exception as e:
                     print(f"Error processing content for includes: {e} (file_hash: {file_hash})")
         else:
-            # Increment failure counter
             failed_mod_count += 1
             failed_file_hashes.append(file_hash)
             
@@ -89,11 +79,9 @@ for _, row in tqdm(filtered_df.iterrows(), total=len(filtered_df), desc="Downloa
         error_msg = f"Error processing {url}: {e}"
         print(f"Error processing {url}: {e} (file_hash: {file_hash})")
         
-        # Increment failure counter
         failed_mod_count += 1
         failed_file_hashes.append(file_hash)
 
-# Print completion statistics
 stats_message = (
     f"\nTotal MOD files processed: {len(filtered_df)}, "
     f"Successfully downloaded: {successful_mod_count}, "
@@ -112,7 +100,6 @@ if failed_mod_count > 0:
 else:
     print("All downloads completed successfully")
 
-# Optionally write the failed file hashes to a text file for easier processing
 if failed_file_hashes:
     failed_hashes_fp = os.path.join(LOGS_DIR, f"failed_file_hashes_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
     with open(failed_hashes_fp, "w") as f:
