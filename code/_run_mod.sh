@@ -14,4 +14,6 @@ module load miniconda
 conda activate mod-annotation
 #python 0-1download_json.py
 #python 0-2download_nmodl.py
-bash 0-3compile_and_simulate.sh
+#python 0-3unzip.py
+
+bash 1-1compile_and_simulate.sh
