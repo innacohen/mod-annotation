@@ -7,7 +7,7 @@ LOG_FP = LOGS_DIR / f"0-3mod_compilation_log_{TIMESTAMP}.txt"
 SUMMARY_JSON_FP = LOGS_DIR / f"mod_compilation_summary_{TIMESTAMP}.json"
 
 base_path = Path(DROPBOX_DIR)
-output_base = Path(DROPBOX_DIR2)
+output_base = Path(COMPILED_DIR)
 output_base.mkdir(parents=True, exist_ok=True)
 
 NRNIVMODL = "/home/imc33/.conda/envs/mod-annotation/bin/nrnivmodl"
