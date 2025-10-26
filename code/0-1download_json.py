@@ -1,7 +1,7 @@
 from _utils import *
 
 TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
-LOG_FP = os.path.join(LOGS_DIR, f"modeldb_download_log_{TIMESTAMP}.txt")
+LOG_FP = os.path.join(LOGS_DIR, f"0-1download_log_{TIMESTAMP}.txt")
 
 os.makedirs(RAW_DATA_DIR, exist_ok=True)
 os.makedirs(LOGS_DIR, exist_ok=True)
