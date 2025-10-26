@@ -1,131 +1,56 @@
 from _utils import *
 
-
-# === CONFIG ===
 TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
 LOG_FP = os.path.join(LOGS_DIR, f"0-1download_log_{TIMESTAMP}.txt")
 
 os.makedirs(RAW_DATA_DIR, exist_ok=True)
 os.makedirs(LOGS_DIR, exist_ok=True)
 
-# === READ ANNOTATIONS ===
 df = pd.read_excel(ANNOTATIONS_FP)
 ANNOTATED_SAMPLES = df.query("annotated=='y'")["file_hash"].tolist()
 print(f"Found {len(ANNOTATED_SAMPLES)} annotated samples")
 
-annotated_df = df[df["file_hash"].isin(ANNOTATED_SAMPLES)].copy()
-
 failed_download_count = 0
 failed_file_hashes = []
+
+annotated_df = df[df["file_hash"].isin(ANNOTATED_SAMPLES)].copy()
 downloaded_data = []
 
 print(f"Starting download of {len(annotated_df)} annotated ModelDB entries")
 
-# === HELPER FUNCTIONS ===
-
-def get_direct_download_url(url):
-    match = re.search(r"https://modeldb\.science/(\d+)\?tab=2&file=(.+)", url)
-    if match:
-        model_id, file_path = match.groups()
-        return f"https://modeldb.science/getModelFile?model={model_id}&file={file_path}", file_path
-    return None, None
-
-def get_includes(content):
-    """Extract INCLUDE statements (excluding comments)."""
-    if content is None:
-        return []
-    comment_pattern = re.compile(r'COMMENT.*?ENDCOMMENT', re.DOTALL)
-    content_no_comments = comment_pattern.sub('', content)
-    content_no_comments = re.sub(r':.*$', '', content_no_comments, flags=re.MULTILINE)
-    include_pattern = re.compile(r'^\s*INCLUDE\s+(.+?)(?:\s|$)', re.MULTILINE | re.IGNORECASE)
-    matches = include_pattern.findall(content_no_comments)
-    cleaned_matches = [m.strip('"\'') for m in matches]
-    return cleaned_matches if cleaned_matches else []
-
-def extract_model_id(url):
-    """Extract the model_id from a ModelDB URL."""
-    if 'getModelFile' in url:
-        match = re.search(r'model=(\d+)', url)
-        if match:
-            return match.group(1)
-    match = re.search(r'modeldb\.science/(\d+)', url)
-    if match:
-        return match.group(1)
-    return None
-
-def get_model_creation_date(model_id):
-    """Fetch model creation date via ModelDB API."""
-    if not model_id:
-        return None
-    api_url = f"https://modeldb.science/api/v1/models/{model_id}?indent=4"
-    try:
-        response = requests.get(api_url, timeout=10)
-        response.raise_for_status()
-        model_data = response.json()
-        return model_data.get("created")
-    except Exception:
-        return None
-
-def get_inc_download_links(url):
-    """
-    Given a ModelDB file URL, go one directory up and return list of .inc download URLs.
-    Example:
-    https://modeldb.science/254217?tab=2&file=GidonEtAl2020_fig3andS9/_mod/mySyn.mod
-        → parent dir: .../_mod
-        → returns [ISyn.inc, IUtils.inc]
-    """
-    try:
-        base_url = url.rsplit('/', 1)[0]
-        response = requests.get(base_url, timeout=10)
-        response.raise_for_status()
-
-        soup = BeautifulSoup(response.text, "html.parser")
-        links = soup.find_all("a", href=True)
-        inc_urls = []
-
-        for link in links:
-            href = link["href"]
-            if href.endswith(".inc"):
-                filename = href.split("/")[-1]
-                inc_urls.append(f"{base_url}/{filename}")
-
-        return inc_urls if inc_urls else []
-    except Exception:
-        return []
-
-# === MAIN LOOP ===
 with open(LOG_FP, "w", encoding="utf-8") as log_file:
     log_file.write(f"=== ModelDB Download Log - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ===\n")
     log_file.write(f"Found {len(ANNOTATED_SAMPLES)} annotated samples\n")
     log_file.write(f"Starting download of {len(annotated_df)} annotated ModelDB entries\n\n")
+    
     log_file.write("=== DOWNLOAD DETAILS ===\n")
-
+    
     for _, row in tqdm(annotated_df.iterrows(), total=len(annotated_df), desc="Downloading ModelDB files"):
         row_id = row["row_id"]
         file_hash = row["file_hash"]
         url = row["url"]
-
+        
         model_id = extract_model_id(url)
         created_date = get_model_creation_date(model_id) if model_id else None
         direct_url, file_path = get_direct_download_url(url)
-
+        
         entry_data = {
             "row_id": row_id,
             "file_hash": file_hash,
             "raw_sha": row["raw_sha"],
             "count": row["count"],
             "url": url,
-            "model_id": model_id,
-            "created_date": created_date,
+            "model_id": model_id, 
+            "created_date": created_date, 
+    
             "download_url": direct_url,
             "filename": file_path,
             "content": None,
             "error_code": None,
             "has_include": 0,
-            "download_inc_url": [],  
             "download_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
-
+        
         if not direct_url:
             error_msg = f"FAILED: {file_hash} - Skipping invalid URL: {url}"
             print(error_msg)
@@ -133,21 +58,16 @@ with open(LOG_FP, "w", encoding="utf-8") as log_file:
             entry_data["error_code"] = "Invalid URL"
             failed_download_count += 1
             failed_file_hashes.append(file_hash)
-        else:
+        else:    
             try:
                 response = requests.get(direct_url, timeout=10)
                 response.raise_for_status()
                 entry_data["content"] = response.text
-
+                
                 include_files = get_includes(response.text)
-                entry_data["has_include"] = 1 if include_files else 0
-
-                # NEW: collect .inc download links if include statements present
-                if include_files:
-                    entry_data["download_inc_url"] = get_inc_download_links(url)
-
+                entry_data["has_include"] = 1 if include_files and len(include_files) > 0 else 0
                 log_file.write(f"SUCCESS: {file_hash} - Successfully downloaded\n")
-
+                
             except requests.exceptions.HTTPError as http_err:
                 error_msg = f"FAILED: {file_hash} - HTTP Error {response.status_code}: {http_err}"
                 print(error_msg)
@@ -155,7 +75,6 @@ with open(LOG_FP, "w", encoding="utf-8") as log_file:
                 entry_data["error_code"] = str(response.status_code)
                 failed_download_count += 1
                 failed_file_hashes.append(file_hash)
-
             except requests.exceptions.RequestException as e:
                 error_msg = f"FAILED: {file_hash} - Request Error: {str(e)}"
                 print(error_msg)
@@ -163,27 +82,31 @@ with open(LOG_FP, "w", encoding="utf-8") as log_file:
                 entry_data["error_code"] = "Request Error"
                 failed_download_count += 1
                 failed_file_hashes.append(file_hash)
-
+        
         downloaded_data.append(entry_data)
 
-    # === SAVE RESULTS ===
-    with open(JSON_FP, "w", encoding="utf-8") as json_file:
+    # Save the metadata to JSON
+    with open(OUTPUT_JSON_FP, "w", encoding="utf-8") as json_file:
         json.dump(downloaded_data, json_file, indent=4)
 
+    # Calculate statistics
     total_entries = len(downloaded_data)
     successful_downloads = total_entries - failed_download_count
 
+    # Write summary to log
     summary = f"\n=== DOWNLOAD SUMMARY ===\n"
     summary += f"Total entries: {total_entries}\n"
     summary += f"Successful downloads: {successful_downloads}\n"
     summary += f"Failed downloads: {failed_download_count}\n"
-
+    
     print(summary)
     log_file.write(summary)
-
+    
+    # List all failed file hashes in the same log file
     if failed_download_count > 0:
         log_file.write(f"\n=== FAILED FILE HASHES ({failed_download_count}) ===\n")
         for fh in failed_file_hashes:
             log_file.write(f"{fh}\n")
 
+# Print location of log file
 print(f"Complete log written to: {LOG_FP}")
