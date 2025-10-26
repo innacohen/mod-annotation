@@ -1,25 +1,18 @@
 from _utils import *
-import pandas as pd
-import subprocess
-import zipfile
-import tqdm
-from pathlib import Path
 
-raw_json_df = pd.read_json(JSON_FP)
-MODEL_IDS = set(map(str, raw_json_df["model_id"].tolist()))  # use set for fast lookup
-print(f"Loaded {len(MODEL_IDS)} model IDs")
 
-base_path = Path(DROPBOX_DIR)
-working_dir = Path.cwd()
+base_path = Path(DROPBOX_DIR)         
+output_base = Path(DROPBOX_DIR2)      
+output_base.mkdir(parents=True, exist_ok=True)
 
-zip_files = [
-    item for item in base_path.iterdir()
-    if item.suffix == ".zip" and item.stem in MODEL_IDS
-]
-print(f"Found {len(zip_files)} matching zip files out of {len(list(base_path.glob('*.zip')))} total")
+NRNIVMODL = "/home/imc33/.conda/envs/mod-annotation/bin/nrnivmodl"
 
-for zip_file in tqdm.tqdm(zip_files, desc="Extracting matching ZIPs"):
-    target_folder = working_dir / "modeldb" / zip_file.stem
+# === find zip files ===
+zip_files = list(base_path.glob("*.zip"))
+print(f"Found {len(zip_files)} total zip files")
+
+for zip_file in tqdm(zip_files, desc="Extracting all ZIPs"):
+    target_folder = output_base / zip_file.stem
     target_folder.mkdir(parents=True, exist_ok=True)
 
     try:
@@ -29,9 +22,12 @@ for zip_file in tqdm.tqdm(zip_files, desc="Extracting matching ZIPs"):
         print(f"Failed to unzip {zip_file.name}: {e}")
         continue
 
+    # recursively compile any .mod files
     for root, dirs, files in os.walk(target_folder):
-        if any(file.endswith('.mod') for file in files):
+        if any(file.endswith(".mod") for file in files):
             try:
-                subprocess.run(["nrnivmodl"], cwd=root, check=True)
+                subprocess.run([NRNIVMODL], cwd=root, check=True)
             except subprocess.CalledProcessError as e:
                 print(f"nrnivmodl failed in {root}: {e}")
+            except FileNotFoundError:
+                print(f"nrnivmodl not found at {NRNIVMODL}")
