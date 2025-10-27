@@ -4,7 +4,7 @@ source ~/.bashrc
 conda activate mod-annotation
 
 # === CONFIG ===
-root_dir="/nfs/roberts/project/pi_rm693/imc33/mod-annotation/data/raw/dropbox_compiled"
+root_dir="/nfs/roberts/project/pi_rm693/imc33/mod-annotation/data/raw/nmodl"
 script_path="/nfs/roberts/project/pi_rm693/imc33/mod-annotation/code/_get_mod_dynamics.py"
 n_steps=10   # or however many you want
 
