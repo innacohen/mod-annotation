@@ -2,7 +2,7 @@
 
 
 # IMPORT FUNCTIONS --------------------------------------------------------
-setwd("~/palmer_scratch/mod-extract")
+setwd("project_pi_rm693/imc33/mod-annotation/")
 source("code/_utils.R")
 
 
@@ -10,7 +10,7 @@ source("code/_utils.R")
 dd = read_csv("data/pipeline/feature_dd.csv")
 xgb_feat_df = read_csv("data/pipeline/feature_importance_global.csv") 
 pred_df = read_csv("data/pipeline/predictions_with_shap.csv")
-ant_excel_df = read_excel("data/raw/model_db_annotations.xlsx") %>%
+ant_excel_df = read_excel("annotations/model_db_annotations.xlsx") %>%
   clean_names() %>%
   filter(row_id <= 1300)
 ant_long_df = read_csv("data/pipeline/ant_with_excluded_samples.csv") 
@@ -65,25 +65,24 @@ my_list <- list(df1 <- t1flex(t1))
 my_doc <- read_docx()
 walk(my_list, write_word_table, my_doc) 
 fname = paste0("../output/mod_file_tables_",Sys.Date(),".docx")
+dir.create(dirname(fname), showWarnings = FALSE, recursive = TRUE)
 print(my_doc, target = fname) %>% invisible()
+
 # GLOBAL VARIABLES --------------------------------------------------------
 
 names(cw_df)
 table(pred_df$true_subtype)
 
-types = c("I Ca (HVA)", "I K (Ca-activated)", "I K (Rare)", "R Glutamate" "I Other (Leak)")
+types = c("I Ca (HVA)", "I K (Ca-activated)", "I K (Rare)", "R Glutamate", "I Other (Leak)")
 pred_df2 = pred_df %>% dplyr::filter(true_type %in% types)
-
-I Ca (T-type)"
-
 
 
 
 # PLOTS  -----------------------------------------------------------
-plot_top_features(xgb_feat_df)
+#plot_top_features(xgb_feat_df)
 plot_arrow(pred_df)
 
-View(pred_df)
+
 
 plot_db(pred_df2, order_by = "sens_xgb", facet_by_family = FALSE)
 plot_db(pred_df2, order_by = "abs_delta", facet_by_family = FALSE, labels="minimal")
@@ -96,7 +95,7 @@ plot_db(pred_df, style = "winner", order_by = "abs_delta",
 plot_db(pred_df, style = "dumbbell", order_by = "sens_gpt",
         facet_by_family = FALSE, annotate = "counts")
 
-plot_top_features(xgb_feat_df, top_n = 15, base_size=20, legend="minimal")
+#plot_top_features(xgb_feat_df, top_n = 15, base_size=20, legend="minimal")
 # print(p)
 # ggsave("top_features.png", p, width = 8, height = 5, dpi = 300)
 
