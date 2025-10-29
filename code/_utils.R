@@ -152,7 +152,6 @@ plot_arrow <- function(
 
 
 # DUMBELL PLOT ------------------------------------------------------------
-
 plot_db <- function(
     df,
     truth_col = "true_subtype",
@@ -169,8 +168,8 @@ plot_db <- function(
     subtitle = NULL,
     x_lab = "Sensitivity (TP %)",
     y_lab = NULL,
-    xgb_color = "steelblue",
-    gpt_color = "firebrick",
+    xgb_color = "#FFA273",
+    gpt_color = "steelblue",
     tie_color = "grey50",
     line_color = "#999999",
     point_outline = "#333333",
@@ -332,41 +331,40 @@ plot_db <- function(
   
   # --- Annotations (mutually exclusive) ---
   if (annotate == "percent") {
+    # Create a dataframe with only the higher sensitivity value per subtype
+    winner_sens <- sens_long %>%
+      dplyr::group_by(.data[[truth_col]]) %>%
+      dplyr::filter(.data$sensitivity == max(.data$sensitivity, na.rm = TRUE)) %>%
+      dplyr::slice(1) %>%  # In case of ties, just take one
+      dplyr::ungroup()
+    
+    # Add only the winner label (right side) with bold font
     p <- p +
       ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
+        data = winner_sens,
         ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
-        hjust = hjust_winner, size = label_size, color = "black"
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
-        ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
-        hjust = hjust_loser, size = label_size, color = "black"
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$winner == "Tie"),
-        ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
-        hjust = hjust_tie, size = label_size, color = "black"
+        hjust = hjust_winner, 
+        size = label_size, 
+        color = "black",
+        fontface = "bold"
       )
   } else if (annotate == "counts") {
+    # For counts, we'll modify to only show the winner counts with bold text
+    winner_counts <- sens_long %>%
+      dplyr::group_by(.data[[truth_col]]) %>%
+      dplyr::filter(.data$sensitivity == max(.data$sensitivity, na.rm = TRUE)) %>%
+      dplyr::slice(1) %>%  # In case of ties, just take one
+      dplyr::ungroup()
+    
     p <- p +
       ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$model == .data$winner & .data$winner != "Tie"),
+        data = winner_counts,
         ggplot2::aes(label = .data$label_counts),
-        hjust = counts_hjust_winner, size = counts_label_size, color = "black",
-        nudge_x = counts_nudge_x_winner
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$model != .data$winner & .data$winner != "Tie"),
-        ggplot2::aes(label = .data$label_counts),
-        hjust = counts_hjust_loser, size = counts_label_size, color = "black",
-        nudge_x = counts_nudge_x_loser
-      ) +
-      ggplot2::geom_text(
-        data = dplyr::filter(sens_long, .data$winner == "Tie"),
-        ggplot2::aes(label = .data$label_counts),
-        hjust = counts_hjust_tie, size = counts_label_size, color = "black",
-        nudge_x = counts_nudge_x_tie
+        hjust = counts_hjust_winner, 
+        size = counts_label_size, 
+        color = "black",
+        nudge_x = counts_nudge_x_winner,
+        fontface = "bold"
       )
   }
   
@@ -384,7 +382,6 @@ plot_db <- function(
   
   p
 }
-
 
 
 # TOP FEATURES BARPLOT ----------------------------------------------------
@@ -489,7 +486,7 @@ plot_margin <- function(
     gpt_match_col   = "gpt_subtype_match",
     family_fun      = infer_family,  # function: character -> family string
     family_order    = c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither"),
-    winner_colors   = c("XGB" = "steelblue", "GPT" = "firebrick", "Tie" = "grey50"),
+    winner_colors   = c("XGB" = "#FFA273", "GPT" = "steelblue", "Tie" = "grey50"),
     base_size       = 20,
     show_family_strips = FALSE
 ) {

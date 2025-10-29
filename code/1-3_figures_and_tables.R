@@ -8,27 +8,7 @@ source("code/_utils.R")
 
 # IMPORT DATA -------------------------------------------------------------
 dd = read_csv("data/pipeline/feature_dd.csv")
-xgb_feat_df = read_csv("data/pipeline/feature_importance_global.csv")  %>%
-  mutate(
-    feature = case_when(
-      feature == "ik_interval1_time_max_to_90_min_simfeat_na"  ~ "Missing: Max→90% Activation (K⁺)",
-      feature == "ica_interval1_time_to_90_max_simfeat_na"     ~ "Missing: Max→90% Activation (Ca²⁺)",
-      feature == "ina_interval1_time_to_90_max_simfeat_na"     ~ "Missing: Max→90% Activation (Na⁺)",
-      feature == "ik_interval2_time_to_90_recovery_simfeat_na" ~ "Missing: Recovery→90% (K⁺)",
-      feature == "voltage_simfeat_na"                          ~ "Missing: Voltage Response",
-      feature == "ica_interval1_time_min_to_90_max_simfeat_na" ~ "Missing: Min→90% Activation (Ca²⁺)",
-      feature == "ik_interval1_time_min_to_90_max_simfeat_na"  ~ "Missing: Min→90% Activation (K⁺)",
-      feature == "ik_interval1_time_to_90_max_simfeat_na"      ~ "Missing: Time→90% Activation (K⁺)",
-      feature == "read_e_na_yn"                                ~ "Reads Reversal Potential (E Na⁺)",
-      feature == "read_e_ca_yn"                                ~ "Reads Reversal Potential (E Ca²⁺)",
-      feature == "ina_interval1_time_max_to_90_min_simfeat_na" ~ "Missing: Max→90% Activation (Na⁺)",
-      feature == "has_mg_yn"                                   ~ "Contains Mg²⁺ Block",
-      feature == "suffix_yn"                                   ~ "Contains Mechanism Name (suffix)",
-      feature == "ik_interval1_time_to_90_min_simfeat_na"      ~ "Missing: Time→90% Min (K⁺)",
-      TRUE ~ feature  # fallback to original name
-    )
-  )
-
+xgb_feat_df = read_csv("data/pipeline/feature_importance_global.csv") 
 pred_df = read_csv("data/pipeline/predictions_with_shap.csv") 
 ant_excel_df = read_excel("annotations/model_db_annotations.xlsx") %>%
   clean_names() %>%
@@ -98,17 +78,16 @@ pred_df2 = pred_df %>% dplyr::filter(true_type %in% types)
 
 
 # PLOTS  -----------------------------------------https://ood-bouchet.ycrc.yale.edu/rnode/a1132u05n01.mghpcc.ycrc.yale.edu/23803/graphics/plot_zoom_png?width=761&height=459------------------
-#plot_top_features(xgb_feat_df)
-plot_arrow(pred_df)
-
-
+plot_top_features(xgb_feat_df)
 
 plot_db(pred_df, order_by = "sens_xgb", facet_by_family = FALSE)
 
 plot_db(pred_df2, order_by = "abs_delta", facet_by_family = FALSE, labels="minimal")
-plot_db(pred_df2, order_by = "abs_delta", facet_by_family = FALSE, labels = "minimal", show_grid=T, label_size=4, hjust_winner=-0.27)
+plot_db(pred_df, order_by = "abs_delta", facet_by_family = FALSE, labels = "minimal", label_size=4, hjust_winner=-0.27, annotate = "percent", percent_accuracy = 1)
 
 plot_db(pred_df, style = "winner", order_by = "abs_delta", facet_by_family = TRUE, labels = "minimal")
+
+
 plot_db(pred_df, style = "winner", order_by = "abs_delta",
         facet_by_family = TRUE, labels = "minimal",
         annotate = "percent", percent_accuracy = 1)
@@ -118,10 +97,7 @@ plot_db(pred_df, style = "dumbbell", order_by = "sens_gpt",
         facet_by_family = FALSE, annotate = "counts")
 
 plot_top_features(xgb_feat_df, top_n = 15, base_size=20, legend="minimal")
+
 # print(p)
 # ggsave("top_features.png", p, width = 8, height = 5, dpi = 300)
-
-View(head(xgb_feat_df))
-
-xgb_feat_df$feature
 
