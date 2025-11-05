@@ -83,9 +83,10 @@ plot_top_features(xgb_feat_df)
 plot_db(pred_df, order_by = "sens_xgb", facet_by_family = FALSE)
 
 plot_db(pred_df2, order_by = "abs_delta", facet_by_family = FALSE, labels="minimal")
-plot_db(pred_df, order_by = "abs_delta", facet_by_family = FALSE, labels = "minimal", label_size=4, hjust_winner=-0.27, annotate = "percent", percent_accuracy = 1)
 
-plot_db(pred_df, style = "winner", order_by = "abs_delta", facet_by_family = TRUE, labels = "minimal")
+plot_db(pred_df, order_by = "abs_delta", facet_by_family = FALSE, labels = "full", label_size=4, hjust_winner=-0.27, annotate = "percent", percent_accuracy = 1)
+
+plot_db(pred_df, style = "winner", order_by = "abs_delta", facet_by_family = TRUE)
 
 
 plot_db(pred_df, style = "winner", order_by = "abs_delta",
