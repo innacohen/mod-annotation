@@ -12,6 +12,6 @@ module purge
 module load miniconda
 conda activate mod-annotation
 #python 0-1download_json.py
-python 0-3compile.py
-bash 0-4simulate.sh 
-
+#python 0-3compile.py
+#python 0-4check_compile.py
+python 0-5simulatev2.py
