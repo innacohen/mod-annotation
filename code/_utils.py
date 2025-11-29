@@ -6,13 +6,12 @@ import json
 import ast
 import pickle
 import random
-from pathlib import Path
-import requests
-import logging
-from datetime import datetime
-from urllib.parse import urlparse, parse_qs 
 import zipfile
 import subprocess
+import logging
+from pathlib import Path
+from datetime import datetime
+from urllib.parse import urlparse, parse_qs, urljoin
 
 # === Data Handling ===
 import pandas as pd
@@ -29,8 +28,6 @@ from plotnine import *
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-from urllib.parse import urljoin, urlparse
-from bs4 import BeautifulSoup
 
 # === Google Sheets Integration ===
 import gspread
@@ -83,6 +80,7 @@ from feature_engine.wrappers import SklearnTransformerWrapper
 # === Pandas Display Settings ===
 pd.set_option("display.max_columns", None)
 
+
 # === Global Variables ===
 
 PROJECT_DIR = Path(__file__).parent.parent
@@ -103,6 +101,21 @@ GPT_FP = RAW_DATA_DIR / "mod_files_gpt.csv"
 LOGS_DIR = PROJECT_DIR / "logs"
 OUTPUT_DIR = PROJECT_DIR / "output"
 FIGURES_DIR = PROJECT_DIR / "figures"
+
+
+
+def View(df, rows=None, cols=None, width=None):
+    
+    """Displays the first `rows` of the DataFrame like R's View() by adjusting Pandas settings."""
+    
+    # Show only the first `rows` of the DataFrame
+    with pd.option_context(
+        "display.max_rows", rows,  # Limit number of rows shown
+        "display.max_columns", cols,  # Show all columns
+        "display.max_colwidth", width,  # Show full column width
+        "display.expand_frame_repr", False  # Prevent column wrapping
+    ):
+        display(df.head(rows))  # Show only the first `rows`
 
 
 

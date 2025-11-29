@@ -1,22 +1,20 @@
 
-
-
 # IMPORT FUNCTIONS --------------------------------------------------------
-setwd("project_pi_rm693/imc33/mod-annotation/")
 source("code/_utils.R")
 
 
 # IMPORT DATA -------------------------------------------------------------
-dd = read_csv("data/pipeline/feature_dd.csv")
-xgb_feat_df = read_csv("data/pipeline/feature_importance_global.csv") 
-pred_df = read_csv("data/pipeline/predictions_with_shap.csv") 
-ant_excel_df = read_excel("annotations/model_db_annotations.xlsx") %>%
-  clean_names() %>%
+dd = read_csv("data/pipeline/archived/feature_dd.csv")
+xgb_feat_df = read_csv("data/pipeline/archived/feature_importance_global.csv") 
+pred_df = read_csv("data/pipeline/archived/predictions_with_shap.csv") 
+raw_excel_df =  read_excel("annotations/model_db_annotations.xlsx") %>%
+  clean_names() 
+ant_excel_df = raw_excel_df %>%
   filter(row_id <= 1300)
-ant_long_df = read_csv("data/pipeline/ant_with_excluded_samples.csv") 
-ant_pre_df = read_csv("data/pipeline/preprocessed.csv")
-ant_pre_df = read_csv("data/pipeline/preprocessed.csv")
-cw_df = read_csv("data/pipeline/crosswalk.csv") %>% select(-type)
+ant_long_df = read_csv("data/pipeline/archived/ant_with_excluded_samples.csv") 
+ant_pre_df = read_csv("data/pipeline/archived/preprocessed.csv")
+ant_pre_df = read_csv("data/pipeline/archived/preprocessed.csv")
+cw_df = read_csv("data/pipeline/archived/crosswalk.csv") %>% select(-type)
 
 
 
@@ -35,6 +33,80 @@ EXT_VALIDATION = ant_pre_df %>%
   filter(rare_subtype != TRUE) %>%
   filter(!file_hash %in% c(TRAIN, INT_VALIDATION)) %>%
   pull(file_hash)
+
+
+
+# FIGURE 1 ----------------------------------------------------------------
+log = create_logger()
+log$add_entry("raw data", raw_excel_df)
+log$get_log()
+
+excel2 = raw_excel_df %>%
+  filter(row_id <= 1300) %>%
+  mutate(
+    exclusion_reason = case_when(
+      subtype_confidence == "1 - Not confident at all" ~ "low_confidence",
+      type == "Exclude" & subtype_1 == "Exclude - Not on Model DB" ~ "missing",
+      type == "Exclude" & subtype_1 == "Exclude - Old Architecture" ~ "pointers",
+      type %in% c("I Multi", "R Multi") ~ "multi",
+      TRUE ~ NA_character_
+    )
+  )
+
+
+log$add_entry("annotated", excel2)
+log$get_log()
+
+
+
+excel_2a = excel2 %>%
+  filter(exclusion_reason == "low_confidence")
+
+log$add_entry("low confidence", excel_2a)
+log$get_log()
+
+excel_2b = excel2 %>%
+  filter(exclusion_reason == "missing")
+ 
+log$add_entry("missing", excel_2b)
+log$get_log()
+
+
+excel_2c = excel2 %>%
+  filter(exclusion_reason == "pointers")
+
+log$add_entry("pointers", excel_2c)
+log$get_log()
+
+
+excel_2d = excel2 %>%
+  filter(exclusion_reason == "multi")
+
+log$add_entry("multiple subtypes", excel_2d)
+log$get_log()
+
+excel3 = excel2 %>%
+  filter(is.na(exclusion_reason))
+
+log$add_entry("exclude above (steps 3-6)", excel3)
+log$get_log()
+
+s
+# TABLE 1 --------------------------------------------------------------------
+
+
+
+combined_df <- bind_rows(
+  tibble(file_hash = TRAIN, split = "train"),
+  tibble(file_hash = INT_VALIDATION, split = "int_validation"),
+  tibble(file_hash = EXT_VALIDATION, split = "ext_validation")
+)
+
+
+train_df = ant_excel_df %>%
+  filter(file_hash %in% TRAIN)
+
+label_df = read_csv("code/label_df.csv")
 
 
 new_subtype_labels <- ant_pre_df %>%
@@ -101,4 +173,5 @@ plot_top_features(xgb_feat_df, top_n = 15, base_size=20, legend="minimal")
 
 # print(p)
 # ggsave("top_features.png", p, width = 8, height = 5, dpi = 300)
+
 

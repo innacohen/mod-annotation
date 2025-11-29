@@ -176,13 +176,11 @@ def run_sim(mod_file_path, v, doplot=False):
     return results
 
 
-if __name__ == "__main__":
-    print(f"Current working directory: {Path.cwd()}")
-    mod_file_path = sys.argv[1]
-    voltage = float(sys.argv[2]) if len(sys.argv) > 2 else 20
-    suffix = get_suffix_name(mod_file_path)
 
-    results = run_sim(mod_file_path, voltage, doplot=True)
+def simulate_and_save(mod_file_path, voltage=20, doplot=False):
+    """Run simulation and save results + CSV (and optionally plot)."""
+    suffix = get_suffix_name(mod_file_path)
+    results = run_sim(mod_file_path, voltage, doplot=doplot)
 
     flat_features = {
         "mod_file": os.path.basename(mod_file_path),
@@ -199,3 +197,5 @@ if __name__ == "__main__":
     output_csv = os.path.join(SIM_CSV_DIR, f"sim_features__{basename}.csv")
     pd.DataFrame([flat_features]).to_csv(output_csv, index=False)
     print(f"Saved features to: {output_csv}")
+
+    return output_csv

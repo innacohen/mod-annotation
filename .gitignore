@@ -17,3 +17,5 @@ logs/*
 *.so
 *.dll
 R/4.2/
+.Rproj.user
+mod-annotation.Rproj

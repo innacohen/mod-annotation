@@ -9,13 +9,11 @@ library(janitor)
 library(readxl)
 library(flextable)
 library(officer)
+library(here)
 
 # FUNCTIONS ---------------------------------------------------------------
 
-# Concise output for followup table (only Yes's, instead of Yes/No)
-#Show the mean (SD) and median (IQR) for continuous variables
 pvalue <- function(x, ...) {
-  # Construct vectors of data y, and groups (strata) g
   y <- unlist(x)
   g <- factor(rep(1:length(x), times = sapply(x, length)))
   
@@ -370,7 +368,7 @@ plot_db <- function(
       dplyr::distinct(!!rlang::sym(truth_col), sensitivity, family)
     non_tie <- sens_long %>% dplyr::filter(.data$winner != "Tie")
     
-    # Winners (filled with colour)
+    # Winners (filled with color)
     p <- p +
       ggplot2::geom_point(
         data = dplyr::filter(non_tie, .data$model == .data$winner),
@@ -656,3 +654,31 @@ plot_margin <- function(
   return(p)
 }
 
+
+# Create a logging function 
+create_logger <- function() {
+  # Initialize empty dataframe
+  log_df <- data.frame(
+    step = character(),
+    n_row = integer(),
+    n_hash = integer(), 
+    stringsAsFactors = FALSE
+  )
+  
+  # Return a list with the log dataframe and a logging function
+  list(
+    log = log_df,
+    add_entry = function(step_name, data) {
+      new_row <- data.frame(
+        step = step_name,
+        n_row = nrow(data),
+        n_hash = n_distinct(data$file_hash, na.rm = TRUE),
+        stringsAsFactors = FALSE
+      )
+      log_df <<- rbind(log_df, new_row)
+    },
+    get_log = function() {
+      return(log_df)
+    }
+  )
+}

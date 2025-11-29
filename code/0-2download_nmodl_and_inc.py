@@ -11,6 +11,8 @@ logging.basicConfig(
 
 successful_count = 0
 failed_count = 0
+h_file_count = 0
+inc_file_count = 0
 
 # === LOAD DATA ===
 raw_json_df = pd.read_json(JSON_FP)
@@ -24,7 +26,7 @@ base_dir = NMODL_DIR
 os.makedirs(base_dir, exist_ok=True)
 
 # === MAIN LOOP ===
-for _, row in tqdm(raw_json_df.iterrows(), total=len(raw_json_df), desc="Downloading NMODL & INC files"):
+for _, row in tqdm(raw_json_df.iterrows(), total=len(raw_json_df), desc="Downloading NMODL, INC & H files"):
     try:
         file_hash = row["file_hash"]
         url = row.get("download_url")
@@ -58,8 +60,24 @@ for _, row in tqdm(raw_json_df.iterrows(), total=len(raw_json_df), desc="Downloa
                     inc_resp.raise_for_status()
                     with open(inc_path, "wb") as f:
                         f.write(inc_resp.content)
+                    inc_file_count += 1
                 except Exception as inc_err:
                     logging.error(f"Error downloading INC file for {file_hash}: {inc_url} - {inc_err}")
+
+        # === Download .h files (if any) ===
+        h_urls = row.get("download_h_url", [])
+        if isinstance(h_urls, list) and len(h_urls) > 0:
+            for h_url in h_urls:
+                try:
+                    h_name = h_url.split("/")[-1]
+                    h_path = os.path.join(model_dir, h_name)
+                    h_resp = requests.get(h_url, timeout=10)
+                    h_resp.raise_for_status()
+                    with open(h_path, "wb") as f:
+                        f.write(h_resp.content)
+                    h_file_count += 1
+                except Exception as h_err:
+                    logging.error(f"Error downloading H file for {file_hash}: {h_url} - {h_err}")
 
         successful_count += 1
 
@@ -71,9 +89,11 @@ for _, row in tqdm(raw_json_df.iterrows(), total=len(raw_json_df), desc="Downloa
 
 # === SUMMARY ===
 stats_message = (
-    f"\nTotal files processed: {len(raw_json_df)}, "
-    f"Successfully downloaded: {successful_count}, "
-    f"Failed downloads: {failed_count}"
+    f"\nTotal files processed: {len(raw_json_df)}\n"
+    f"Successfully downloaded: {successful_count}\n"
+    f"Failed downloads: {failed_count}\n"
+    f"INC files downloaded: {inc_file_count}\n"
+    f"H files downloaded: {h_file_count}"
 )
 print(stats_message)
 
@@ -82,3 +102,10 @@ if failed_count > 0:
     print(f"Some downloads failed. Check log file: {LOG_FILE_FP}")
 else:
     print("All downloads completed successfully.")
+
+# === Optional: Create detailed summary ===
+print("\n=== Detailed Summary ===")
+models_with_inc = raw_json_df[raw_json_df["has_include"] == 1]["model_id"].nunique()
+models_with_h = raw_json_df[raw_json_df["has_h_url"] == 1]["model_id"].nunique()
+print(f"Models with .inc files: {models_with_inc}")
+print(f"Models with .h files: {models_with_h}")

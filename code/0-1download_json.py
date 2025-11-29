@@ -68,14 +68,27 @@ def get_model_creation_date(model_id):
 
 def get_inc_download_links(url):
     """
-    Given a ModelDB file URL, go one directory up and return list of .inc download URLs.
+    Given a ModelDB file URL, go one directory up and return list of .inc direct download URLs.
     Example:
-    https://modeldb.science/254217?tab=2&file=GidonEtAl2020_fig3andS9/_mod/mySyn.mod
-        → parent dir: .../_mod
-        → returns [ISyn.inc, IUtils.inc]
+    https://modeldb.science/9889?tab=2&file=lytton97/nc_syn.mod
+        → parent dir: .../lytton97
+        → returns direct links like:
+          https://modeldb.science/getModelFile?model=9889&file=lytton97/presyn.inc
     """
     try:
-        base_url = url.rsplit('/', 1)[0]
+        model_id = extract_model_id(url)
+        if not model_id:
+            return []
+
+        # Determine parent directory path inside the model
+        match = re.search(r"file=([^&]+)", url)
+        if not match:
+            return []
+        file_path = match.group(1)
+        parent_dir = "/".join(file_path.split("/")[:-1])  # e.g., lytton97
+        base_url = f"https://modeldb.science/{model_id}?tab=2&file={parent_dir}" if parent_dir else f"https://modeldb.science/{model_id}?tab=2"
+
+        # Fetch HTML directory listing
         response = requests.get(base_url, timeout=10)
         response.raise_for_status()
 
@@ -87,11 +100,55 @@ def get_inc_download_links(url):
             href = link["href"]
             if href.endswith(".inc"):
                 filename = href.split("/")[-1]
-                inc_urls.append(f"{base_url}/{filename}")
+                full_path = f"{parent_dir}/{filename}" if parent_dir else filename
+                inc_urls.append(f"https://modeldb.science/getModelFile?model={model_id}&file={full_path}")
 
         return inc_urls if inc_urls else []
     except Exception:
         return []
+
+
+def get_h_download_links(url):
+    """
+    Given a ModelDB file URL, go one directory up and return list of .h direct download URLs.
+    Example:
+    https://modeldb.science/106891?tab=2&file=b07dec27_20091025/misc.mod
+        → parent dir: .../b07dec27_20091025
+        → returns direct links like:
+          https://modeldb.science/getModelFile?model=106891&file=b07dec27_20091025/misc.h
+    """
+    try:
+        model_id = extract_model_id(url)
+        if not model_id:
+            return []
+
+        # Determine parent directory path inside the model
+        match = re.search(r"file=([^&]+)", url)
+        if not match:
+            return []
+        file_path = match.group(1)
+        parent_dir = "/".join(file_path.split("/")[:-1])  # e.g., ncdemo
+        base_url = f"https://modeldb.science/{model_id}?tab=2&file={parent_dir}" if parent_dir else f"https://modeldb.science/{model_id}?tab=2"
+
+        # Fetch HTML directory listing
+        response = requests.get(base_url, timeout=10)
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        links = soup.find_all("a", href=True)
+        h_urls = []
+
+        for link in links:
+            href = link["href"]
+            if href.endswith(".h"):
+                filename = href.split("/")[-1]
+                full_path = f"{parent_dir}/{filename}" if parent_dir else filename
+                h_urls.append(f"https://modeldb.science/getModelFile?model={model_id}&file={full_path}")
+
+        return h_urls if h_urls else []
+    except Exception:
+        return []
+
 
 # === MAIN LOOP ===
 with open(LOG_FP, "w", encoding="utf-8") as log_file:
@@ -122,7 +179,9 @@ with open(LOG_FP, "w", encoding="utf-8") as log_file:
             "content": None,
             "error_code": None,
             "has_include": 0,
-            "download_inc_url": [],  
+            "download_inc_url": [],
+            "has_h_url": 0,  # NEW: flag for presence of .h files
+            "download_h_url": [],  # NEW: list of .h download URLs
             "download_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
@@ -142,11 +201,20 @@ with open(LOG_FP, "w", encoding="utf-8") as log_file:
                 include_files = get_includes(response.text)
                 entry_data["has_include"] = 1 if include_files else 0
 
-                # NEW: collect .inc download links if include statements present
+                # Collect .inc download links if include statements present
                 if include_files:
                     entry_data["download_inc_url"] = get_inc_download_links(url)
 
+                # NEW: Always check for .h files in the same directory
+                h_file_urls = get_h_download_links(url)
+                entry_data["has_h_url"] = 1 if h_file_urls else 0
+                entry_data["download_h_url"] = h_file_urls
+
                 log_file.write(f"SUCCESS: {file_hash} - Successfully downloaded\n")
+                
+                # Optional: log if .h files were found
+                if h_file_urls:
+                    log_file.write(f"  Found {len(h_file_urls)} .h file(s): {', '.join([u.split('/')[-1] for u in h_file_urls])}\n")
 
             except requests.exceptions.HTTPError as http_err:
                 error_msg = f"FAILED: {file_hash} - HTTP Error {response.status_code}: {http_err}"
