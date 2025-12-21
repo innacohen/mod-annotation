@@ -1150,3 +1150,39 @@ def map_type(subtype):
         return 'I Other'
     else:
         return 'Unknown'
+
+def has_verbatim(content):
+
+    if pd.isna(content):
+        return 0
+    
+    pattern = r'\bVERBATIM\b.*?\bENDVERBATIM\b'
+    
+    return int(bool(re.search(pattern, content, re.IGNORECASE | re.DOTALL)))
+
+
+def has_pointer(content):
+   
+    if pd.isna(content):
+        return 0
+    
+    pattern = r'^\s*POINTER\b'
+    
+    return int(bool(re.search(pattern, content, re.IGNORECASE | re.MULTILINE)))
+
+
+def get_verbatim_length(content):
+   
+    if pd.isna(content):
+        return 0
+    
+    pattern = r'VERBATIM\s*(.*?)\s*ENDVERBATIM'
+    matches = re.findall(pattern, content, re.IGNORECASE | re.DOTALL)
+    
+    if not matches:
+        return 0
+    
+    total_lines = sum(len(block.split('\n')) for block in matches)
+    
+    return total_lines
+
