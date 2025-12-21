@@ -29,11 +29,6 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-# === Google Sheets Integration ===
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from gspread_dataframe import set_with_dataframe
-
 # === Modeling & Preprocessing ===
 import xgboost as xgb
 import shap
@@ -55,6 +50,9 @@ from sklearn.metrics import (
     classification_report,
     confusion_matrix
 )
+
+from sklearn.preprocessing import LabelEncoder
+
 
 # === Feature Engineering ===
 from feature_engine.imputation import (
