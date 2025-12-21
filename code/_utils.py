@@ -119,3 +119,20 @@ def View(df, rows=None, cols=None, width=None):
 
 
 
+class DataLogger:
+    def __init__(self):
+        self.log_df = pd.DataFrame(columns=["step", "n_row", "n_hash"])
+
+    def add_entry(self, step_name, data):
+        new_row = {
+            "step": step_name,
+            "n_row": len(data),
+            "n_hash": data["file_hash"].nunique(dropna=True)
+        }
+        self.log_df = pd.concat(
+            [self.log_df, pd.DataFrame([new_row])],
+            ignore_index=True
+        )
+
+    def get_log(self):
+        return self.log_df.copy()

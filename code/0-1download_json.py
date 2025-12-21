@@ -1,6 +1,5 @@
 from _utils import *
 
-
 # === CONFIG ===
 TIMESTAMP = datetime.now().strftime('%Y%m%d_%H%M%S')
 LOG_FP = os.path.join(LOGS_DIR, f"0-1download_log_{TIMESTAMP}.txt")
@@ -10,7 +9,7 @@ os.makedirs(LOGS_DIR, exist_ok=True)
 
 # === READ ANNOTATIONS ===
 df = pd.read_excel(ANNOTATIONS_FP)
-ANNOTATED_SAMPLES = df.query("annotated=='y'")["file_hash"].tolist()
+ANNOTATED_SAMPLES = df.query("row_id <=1301")["file_hash"].tolist()
 print(f"Found {len(ANNOTATED_SAMPLES)} annotated samples")
 
 annotated_df = df[df["file_hash"].isin(ANNOTATED_SAMPLES)].copy()

@@ -1,5 +1,7 @@
 from _utils import *
 
+# take 2mins to run
+
 # === SETUP LOGGING ===
 LOG_FILE_FP = os.path.join(LOGS_DIR, f"0-2nmodl_download_errors_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 logging.basicConfig(

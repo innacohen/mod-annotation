@@ -18,15 +18,6 @@ combined_df = pd.concat(dfs, ignore_index=True).drop_duplicates()
 
 # Save combined file
 out_path = PIPELINE_DATA_DIR / "sim_features_combined.csv"
+
 combined_df.to_csv(out_path, index=False)
 print(f"Saved combined sim features to {out_path}")
-
-
-sim_df = (
-    combined_df
-    .drop_duplicates(subset="mod_file")
-    .rename(columns=lambda col: col if col in ['mod_file', 'mod_name'] else f"{col}_simfeat")
-    .assign(file_hash=lambda df: df['mod_file'].str.replace(r'\.mod$', '', regex=True))
-    .drop(columns=["suffix_simfeat","source_file_simfeat","source_folder_simfeat"])
-    .reset_index(drop=True)
-)

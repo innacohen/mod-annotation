@@ -11,8 +11,8 @@ mkdir -p /nfs/roberts/project/pi_rm693/imc33/mod-annotation/logs
 module purge
 module load miniconda
 conda activate mod-annotation
-python 0-1download_json.py
-python 0-2download_nmodl_and_inc.py
-python 0-3compile.py
+#python 0-1download_json.py
+#python 0-2download_nmodl_and_inc.py
+#python 0-3compile.py
 #python 0-4check_compile.py
 python 0-5simulate.py
