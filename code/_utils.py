@@ -84,6 +84,7 @@ pd.set_option("display.max_columns", None)
 PROJECT_DIR = Path(__file__).parent.parent
 CODE_DIR = PROJECT_DIR / "code"
 DATA_DIR = PROJECT_DIR / "data"
+GPT_DIR = DATA_DIR / "gpt"
 RAW_DATA_DIR = DATA_DIR / "raw"
 PIPELINE_DATA_DIR = DATA_DIR / "pipeline"
 JSON_FP = RAW_DATA_DIR / "model_db_metadata.json"
