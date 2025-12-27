@@ -1186,3 +1186,16 @@ def get_verbatim_length(content):
     
     return total_lines
 
+
+def to_set(x):
+    if x is None or (isinstance(x, float) and pd.isna(x)):
+        return set()
+    if isinstance(x, set):
+        return x
+    if isinstance(x, list):
+        return set(i.strip() for i in x)
+    if isinstance(x, str):
+        return {i.strip() for i in x.split(",") if i.strip()}
+    return set()
+
+
