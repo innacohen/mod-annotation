@@ -150,316 +150,179 @@ plot_arrow <- function(
 
 
 # DUMBELL PLOT ------------------------------------------------------------
+
 plot_db <- function(
     df,
     truth_col = "true_subtype",
-    xgb_match_col = "xgb_subtype_match",
-    gpt_match_col = "gpt_subtype_match",
-    family_fun = infer_family,
-    family_order = c("Calcium", "H-Current", "K", "Na", "Receptors", "Other", "Neither"),
-    order_by = c("sens_xgb", "sens_gpt", "delta", "abs_delta"),
-    facet_by_family = FALSE,
-    labels = c("full", "minimal"),
-    style = c("dumbbell", "winner"),
-    annotate = c("none", "percent", "counts"),
+    xgb_pred_col = "xgb_pred_subtype",
+    gpt_pred_col = "gpt_bl_pred_subtype",  # or gpt_aug_pred_subtype
     title = "Subtype Sensitivity: XGB vs GPT",
-    subtitle = NULL,
-    x_lab = "Sensitivity (TP %)",
-    y_lab = NULL,
     xgb_color = "#FFA273",
     gpt_color = "steelblue",
-    tie_color = NULL,
-    line_color = "#999999",
-    point_outline = "#333333",
-    base_size = 14,
-    # Percent annotation controls
-    percent_accuracy = 1,
-    label_size = 3,
-    hjust_winner = -0.3,
-    hjust_loser  =  1.3,
-    hjust_tie    = -0.3,
-    # Counts annotation controls
-    counts_label_size = 3,
-    counts_hjust_winner = -0.3,
-    counts_hjust_loser  =  1.3,
-    counts_hjust_tie    = -0.3,
-    counts_nudge_x_winner = 0.01,
-    counts_nudge_x_loser  = 0.00,
-    counts_nudge_x_tie    = 0.01,
-    # Axis domain
-    x_min = 0, x_max = 1.0,
-    extend_right_if_annotated = 0.10,
-    # Tie representation
-    tie_offset = NULL
+    line_color = "grey70",
+    base_size = 14
 ) {
-  labels   <- match.arg(labels)
-  order_by <- match.arg(order_by)
-  style    <- match.arg(style)
-  annotate <- match.arg(annotate)
   
-  # --- Build long-format counts & sensitivities (per model) ---
-  counts_long <- dplyr::bind_rows(
-    df %>%
-      dplyr::group_by(.data[[truth_col]]) %>%
-      dplyr::summarise(
-        correct = sum(.data[[xgb_match_col]], na.rm = TRUE),
-        total   = sum(!is.na(.data[[xgb_match_col]])),
-        .groups = "drop"
-      ) %>% dplyr::mutate(model = "XGB"),
-    df %>%
-      dplyr::group_by(.data[[truth_col]]) %>%
-      dplyr::summarise(
-        correct = sum(.data[[gpt_match_col]], na.rm = TRUE),
-        total   = sum(!is.na(.data[[gpt_match_col]])),
-        .groups = "drop"
-      ) %>% dplyr::mutate(model = "GPT")
-  ) %>%
-    dplyr::mutate(
-      sensitivity  = dplyr::if_else(total > 0, correct / total, NA_real_),
-      label_counts = paste0(correct, "/", total),
-      family = purrr::map_chr(.data[[truth_col]], family_fun)
-    )
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(scales)
   
-  # Winner/loser per subtype (compare sensitivities)
-  winner_df <- counts_long %>%
-    dplyr::select(.data[[truth_col]], .data$model, .data$sensitivity) %>%
-    tidyr::pivot_wider(names_from = .data$model, values_from = .data$sensitivity) %>%
-    dplyr::mutate(
-      diff   = GPT - XGB,
-      winner = dplyr::case_when(
-        diff > 0 ~ "GPT",
-        diff < 0 ~ "XGB",
-        TRUE     ~ "Tie"
-      )
+  # ---- compute sensitivity per subtype ----
+  sens <- df %>%
+    group_by(.data[[truth_col]]) %>%
+    summarise(
+      sens_xgb = mean(.data[[xgb_pred_col]] == .data[[truth_col]], na.rm = TRUE),
+      sens_gpt = mean(.data[[gpt_pred_col]] == .data[[truth_col]], na.rm = TRUE),
+      .groups = "drop"
     ) %>%
-    dplyr::select(.data[[truth_col]], .data$winner, .data$diff)
+    rename(subtype = !!truth_col) %>%
+    arrange(subtype) %>%                     # ✅ alphabetical order
+    mutate(subtype = factor(subtype, levels = rev(subtype)))  # top = first alphabetically
   
-  sens_long <- counts_long %>%
-    dplyr::left_join(winner_df, by = truth_col) %>%
-    dplyr::mutate(family = factor(.data$family, levels = family_order))
+  # ---- long format for points ----
+  sens_long <- sens %>%
+    pivot_longer(
+      cols = c(sens_xgb, sens_gpt),
+      names_to = "model",
+      values_to = "sensitivity"
+    ) %>%
+    mutate(
+      model = recode(
+        model,
+        sens_xgb = "XGB",
+        sens_gpt = "GPT"
+      )
+    )
   
-  # --- Ordering by choice (robust) ---
-  if (order_by == "abs_delta") {
-    sens_long <- sens_long %>%
-      dplyr::group_by(family) %>%
-      dplyr::arrange(dplyr::desc(abs(.data$diff)), .by_group = TRUE) %>%
-      dplyr::ungroup()
+  # ---- plot ----
+  ggplot() +
     
-    levs <- sens_long %>%
-      dplyr::pull(!!rlang::sym(truth_col)) %>%
-      unique()
-    
-  } else if (order_by == "sens_xgb") {
-    ord <- sens_long %>%
-      dplyr::filter(.data$model == "XGB") %>%
-      dplyr::arrange(.data$family, dplyr::desc(.data$sensitivity))
-    levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col)) %>% unique()
-    
-  } else if (order_by == "sens_gpt") {
-    ord <- sens_long %>%
-      dplyr::filter(.data$model == "GPT") %>%
-      dplyr::arrange(.data$family, dplyr::desc(.data$sensitivity))
-    levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col)) %>% unique()
-    
-  } else { # "delta"
-    ord <- counts_long %>%
-      dplyr::distinct(!!rlang::sym(truth_col), family) %>%
-      dplyr::left_join(winner_df, by = truth_col) %>%
-      dplyr::arrange(family, dplyr::desc(.data$diff))
-    levs <- ord %>% dplyr::pull(!!rlang::sym(truth_col))
-  }
-  
-  sens_long <- sens_long %>%
-    dplyr::mutate(!!truth_col := factor(.data[[truth_col]], levels = rev(levs)))
-  
-  # Default subtitle for gap+facets
-  if (is.null(subtitle) && facet_by_family && order_by == "abs_delta") {
-    subtitle <- if (style == "winner") {
-      "Winner in color; loser hollow; ties in grey — ordered by biggest gap within each family"
-    } else {
-      "Ordered by biggest gap within each family"
-    }
-  }
-  
-  # Axis limits (optionally extend right to make room for labels)
-  needs_extend <- annotate != "none"
-  x_right <- if (needs_extend) x_max + extend_right_if_annotated else x_max
-  
-  # Compute a blended colour for tie legend if not supplied
-  if (is.null(tie_color)) {
-    # Use scales::colour_ramp to find the midpoint colour between XGB and GPT
-    tie_color <- scales::colour_ramp(c(xgb_color, gpt_color))(0.5)
-  }
-  
-  # If tie_offset not provided, derive a small offset based on axis range
-  if (is.null(tie_offset)) {
-    tie_offset <- (x_max - x_min) * 0.01
-  }
-  
-  # --- Base plot ---
-  p <- ggplot2::ggplot(
-    sens_long,
-    ggplot2::aes(x = .data$sensitivity, y = .data[[truth_col]], group = .data[[truth_col]])
-  ) +
-    ggplot2::geom_line(color = line_color, linewidth = 0.8) +
-    ggplot2::scale_x_continuous(
-      labels = scales::percent_format(accuracy = percent_accuracy),
-      limits = c(x_min, x_right)
+    # connecting lines
+    geom_segment(
+      data = sens,
+      aes(
+        x = sens_xgb,
+        xend = sens_gpt,
+        y = subtype,
+        yend = subtype
+      ),
+      color = line_color,
+      linewidth = 0.8
     ) +
-    ggplot2::labs(title = title, subtitle = subtitle, x = x_lab, y = y_lab) +
-    ggplot2::theme_minimal(base_size = base_size) +
-    ggplot2::theme(
-      panel.grid.major.y = ggplot2::element_blank(),
-      panel.grid.minor.x = ggplot2::element_blank()
-    )
-  
-  # --- Points (by style) ---
-  if (style == "dumbbell") {
-    # Prepare a column that distinguishes ties from model points
-    sens_long_with_model_ties <- sens_long %>%
-      dplyr::mutate(plot_model = dplyr::if_else(.data$winner == "Tie", "Tie", .data$model))
     
-    # Split the data into ties and non‑ties
-    tie_points <- sens_long_with_model_ties %>%
-      dplyr::filter(.data$winner == "Tie") %>%
-      # Keep only one row per subtype/family to avoid duplicate plotting
-      dplyr::distinct(!!rlang::sym(truth_col), sensitivity, family)
-    non_tie_points <- sens_long_with_model_ties %>%
-      dplyr::filter(.data$winner != "Tie")
+    # points
+    geom_point(
+      data = sens_long,
+      aes(x = sensitivity, y = subtype, fill = model),
+      shape = 21,
+      size = 4,
+      color = "black"
+    ) +
     
-    # Add non‑tie points with fill mapped to model
-    p <- p +
-      ggplot2::geom_point(
-        data = non_tie_points,
-        ggplot2::aes(fill = .data$plot_model),
-        shape = 21, size = 4, color = point_outline, stroke = 1
-      )
-    
-    # For ties, draw two points offset horizontally to indicate half contributions
-    if (nrow(tie_points) > 0) {
-      p <- p +
-        ggplot2::geom_point(
-          data = tie_points,
-          ggplot2::aes(x = sensitivity - tie_offset),
-          shape = 21, size = 4, fill = xgb_color, color = point_outline, stroke = 1
-        ) +
-        ggplot2::geom_point(
-          data = tie_points,
-          ggplot2::aes(x = sensitivity + tie_offset),
-          shape = 21, size = 4, fill = gpt_color, color = point_outline, stroke = 1
-        )
-    }
-    
-    # Define the fill scale so that ties appear in the legend as a blended colour
-    p <- p + ggplot2::scale_fill_manual(
-      values = c("XGB" = xgb_color, "GPT" = gpt_color, "Tie" = tie_color),
-      breaks = c("XGB", "GPT", "Tie"),
-      drop = FALSE,
+    scale_fill_manual(
+      values = c("XGB" = xgb_color, "GPT" = gpt_color),
       name = "Model"
+    ) +
+    
+    scale_x_continuous(
+      labels = percent_format(accuracy = 1),
+      limits = c(0, 1)
+    ) +
+    
+    labs(
+      title = title,
+      x = "Sensitivity (TP %)",
+      y = NULL
+    ) +
+    
+    theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.major.y = element_blank(),
+      legend.position = "top"
     )
-  } else {
-    # Winner style
-    # Create a named vector for all colours including tie (using blended colour for legend)
-    all_colors <- c("GPT" = gpt_color, "XGB" = xgb_color, "Tie" = tie_color)
-    
-    # Split data into tie and non‑tie subsets
-    tie_data <- sens_long %>%
-      dplyr::filter(.data$winner == "Tie") %>%
-      dplyr::distinct(!!rlang::sym(truth_col), sensitivity, family)
-    non_tie <- sens_long %>% dplyr::filter(.data$winner != "Tie")
-    
-    # Winners (filled with color)
-    p <- p +
-      ggplot2::geom_point(
-        data = dplyr::filter(non_tie, .data$model == .data$winner),
-        ggplot2::aes(fill = .data$model),
-        shape = 21, size = 4, color = "black", stroke = 1
-      )
-    
-    # Losers (hollow)
-    p <- p +
-      ggplot2::geom_point(
-        data = dplyr::filter(non_tie, .data$model != .data$winner),
-        shape = 21, size = 2.5, fill = "white", color = "black", stroke = 0.8
-      )
-    
-    # Ties: draw two points offset horizontally to indicate half contributions
-    if (nrow(tie_data) > 0) {
-      p <- p +
-        ggplot2::geom_point(
-          data = tie_data,
-          ggplot2::aes(x = sensitivity - tie_offset, fill = "XGB"),
-          shape = 21, size = 4, color = "black", stroke = 1
-        ) +
-        ggplot2::geom_point(
-          data = tie_data,
-          ggplot2::aes(x = sensitivity + tie_offset, fill = "GPT"),
-          shape = 21, size = 4, color = "black", stroke = 1
-        )
-    }
-    
-    # Scale that includes all three categories
-    p <- p + ggplot2::scale_fill_manual(
-      values = all_colors,
-      breaks = c("XGB", "GPT", "Tie"),
-      drop = FALSE,
-      name = "Model"
-    )
-  }
-  
-  # --- Annotations (mutually exclusive) ---
-  if (annotate == "percent") {
-    # Create a dataframe with only the higher sensitivity value per subtype
-    winner_sens <- sens_long %>%
-      dplyr::group_by(.data[[truth_col]]) %>%
-      dplyr::filter(.data$sensitivity == max(.data$sensitivity, na.rm = TRUE)) %>%
-      dplyr::slice(1) %>%  # In case of ties, just take one
-      dplyr::ungroup()
-    
-    # Add only the winner label (right side) with bold font
-    p <- p +
-      ggplot2::geom_text(
-        data = winner_sens,
-        ggplot2::aes(label = scales::percent(.data$sensitivity, accuracy = percent_accuracy)),
-        hjust = hjust_winner,
-        size = label_size,
-        color = "black",
-        fontface = "bold"
-      )
-  } else if (annotate == "counts") {
-    # For counts, show the winner counts with bold text
-    winner_counts <- sens_long %>%
-      dplyr::group_by(.data[[truth_col]]) %>%
-      dplyr::filter(.data$sensitivity == max(.data$sensitivity, na.rm = TRUE)) %>%
-      dplyr::slice(1) %>%  # In case of ties, just take one
-      dplyr::ungroup()
-    
-    p <- p +
-      ggplot2::geom_text(
-        data = winner_counts,
-        ggplot2::aes(label = .data$label_counts),
-        hjust = counts_hjust_winner,
-        size = counts_label_size,
-        color = "black",
-        nudge_x = counts_nudge_x_winner,
-        fontface = "bold"
-      )
-  }
-  
-  # Facets & label mode
-  if (facet_by_family) {
-    p <- p +
-      ggplot2::facet_grid(family ~ ., scales = "free_y", space = "free_y") +
-      ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0, face = "bold"))
-  }
-  if (labels == "minimal") {
-    p <- p +
-      ggplot2::theme(strip.text.y = ggplot2::element_blank(),
-                     legend.position = "none")
-  }
-  
-  p
 }
+
+
+plot_arrow <- function(
+    df,
+    truth_col = "true_subtype",
+    gpt_bl_col = "gpt_bl_pred_subtype",
+    gpt_aug_col = "gpt_aug_pred_subtype",
+    title = "Subtype Sensitivity: GPT Baseline → GPT + Heuristics",
+    bl_color = "steelblue",
+    aug_color = "#1f4ed8",
+    arrow_color = "grey60",
+    base_size = 14
+) {
+  
+  library(dplyr)
+  library(ggplot2)
+  library(scales)
+  
+  # ---- compute sensitivities ----
+  sens <- df %>%
+    group_by(.data[[truth_col]]) %>%
+    summarise(
+      sens_bl  = mean(.data[[gpt_bl_col]]  == .data[[truth_col]], na.rm = TRUE),
+      sens_aug = mean(.data[[gpt_aug_col]] == .data[[truth_col]], na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    rename(subtype = !!truth_col) %>%
+    arrange(subtype) %>%                                   # alphabetical
+    mutate(subtype = factor(subtype, levels = rev(subtype)))
+  
+  # ---- plot ----
+  ggplot(sens, aes(y = subtype)) +
+    
+    # arrows: baseline → augmented
+    geom_segment(
+      aes(
+        x = sens_bl,
+        xend = sens_aug,
+        yend = subtype
+      ),
+      arrow = arrow(length = unit(0.18, "cm"), type = "closed"),
+      color = arrow_color,
+      linewidth = 0.9
+    ) +
+    
+    # baseline points
+    geom_point(
+      aes(x = sens_bl),
+      shape = 21,
+      size = 4,
+      fill = bl_color,
+      color = "black"
+    ) +
+    
+    # augmented points
+    geom_point(
+      aes(x = sens_aug),
+      shape = 21,
+      size = 4,
+      fill = aug_color,
+      color = "black"
+    ) +
+    
+    scale_x_continuous(
+      labels = percent_format(accuracy = 1),
+      limits = c(0, 1)
+    ) +
+    
+    labs(
+      title = title,
+      x = "Sensitivity (TP %)",
+      y = NULL
+    ) +
+    
+    theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.x = element_blank()
+    )
+}
+
 
 # TOP FEATURES BARPLOT ----------------------------------------------------
 
