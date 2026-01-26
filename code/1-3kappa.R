@@ -31,15 +31,146 @@ pairwise_kappa <- function(df, cols, weight = "unweighted") {
     dplyr::arrange(dplyr::desc(kappa))
 }
 
+replace_multiple_preds <- function(x, multiple_label = "Multiple") {
+  x <- trimws(x)
+  
+  dplyr::if_else(
+    is.na(x), NA_character_,
+    dplyr::if_else(grepl(",", x), multiple_label, x)
+  )
+}
 
-# GPT 5.2 AGREEMENT -------------------------------------------------------
+
+plot_disagreement_heatmap <- function(df, a, b, top_n = 30) {
+  
+  tab <- df %>%
+    select(all_of(c(a, b))) %>%
+    drop_na() %>%
+    count(.data[[a]], .data[[b]], name = "n") %>%
+    mutate(disagree = .data[[a]] != .data[[b]]) %>%
+    filter(disagree)
+  
+  # keep top disagreements for readability
+  tab_top <- tab %>% slice_max(n, n = top_n)
+  
+  ggplot(tab_top, aes(x = .data[[b]], y = .data[[a]], fill = n)) +
+    geom_tile() +
+    geom_text(aes(label = n), size = 3) +
+    labs(
+      title = paste("Disagreements:", a, "vs", b),
+      x = b,
+      y = a
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+plot_top_disagreements <- function(df, a, b, top_n = 20) {
+  dd <- df %>%
+    select(hash, all_of(c(a, b))) %>%
+    drop_na() %>%
+    filter(.data[[a]] != .data[[b]]) %>%
+    mutate(pair = paste0(.data[[a]], "  →  ", .data[[b]])) %>%
+    count(pair, sort = TRUE) %>%
+    slice_head(n = top_n)
+  
+  ggplot(dd, aes(x = reorder(pair, n), y = n)) +
+    geom_col() +
+    coord_flip() +
+    labs(
+      title = paste("Top disagreements:", a, "vs", b),
+      x = "Disagreement (A → B)",
+      y = "Count"
+    ) +
+    theme_minimal()
+}
+
+get_disagreements <- function(df, a, b, extra_cols = c("file_hash", "hash")) {
+  df %>%
+    select(any_of(extra_cols), all_of(c(a, b))) %>%
+    drop_na() %>%
+    filter(.data[[a]] != .data[[b]])
+}
+
+plot_all_top_disagreements <- function(df, cols, top_n = 20) {
+  pairs <- combn(cols, 2, simplify = FALSE)
+  
+  plots <- purrr::map(pairs, function(p) {
+    plot_top_disagreements(df, a = p[1], b = p[2], top_n = top_n)
+  })
+  
+  names(plots) <- purrr::map_chr(pairs, ~ paste0(.x[1], "_vs_", .x[2]))
+  plots
+}
+
+
+
+plot_all_top_disagreements_faceted <- function(df, cols, top_n = 10) {
+  
+  pairs <- combn(cols, 2, simplify = FALSE)
+  
+  dd <- purrr::map_dfr(pairs, function(p) {
+    a <- p[1]; b <- p[2]
+    
+    df %>%
+      select(all_of(c(a, b))) %>%
+      drop_na() %>%
+      filter(.data[[a]] != .data[[b]]) %>%
+      mutate(pair = paste0(a, " vs ", b),
+             mismatch = paste0(.data[[a]], " → ", .data[[b]])) %>%
+      count(pair, mismatch, sort = TRUE) %>%
+      slice_head(n = top_n)
+  })
+  
+  ggplot(dd, aes(x = reorder_within(mismatch, n, pair), y = n)) +
+    geom_col() +
+    coord_flip() +
+    scale_x_reordered() +
+    facet_wrap(~ pair, scales = "free_y") +
+    theme_minimal() +
+    labs(
+      title = "Top disagreements across all GPT head-to-head comparisons",
+      x = "Mismatch (A → B)",
+      y = "Count"
+    )
+}
+
+factor_tf <- function(x) {
+  factor(x, levels = c(TRUE, FALSE), labels = c("TRUE", "FALSE"))
+}
+
+
+# DATA --------------------------------------------------------------------
+
 
 gpt_run1 = read_excel("data/gpt/gpt_baseline_run1.xlsx") %>% rename(gpt_run1 = mechanisms) %>% select(-notes)
 gpt_run2 = read_excel("data/gpt/gpt_baseline_run2.xlsx") %>% rename(gpt_run2 = mechanisms) %>% select(-notes)
 gpt_mini = read_excel("data/gpt/gpt_mini.xlsx")  %>% rename(gpt_mini = mechanisms) %>% select(-notes)
 gpt_mini_h = read_excel("data/gpt/gpt_mini_with_heuristics.xlsx") %>% rename(gpt_mini_h = mechanisms) %>% select(-notes)
 gpt_h = read_excel("data/gpt/gpt_with_heuristics.xlsx")  %>% rename(gpt_h = mechanisms) %>% select(-notes)
+ant_df = read_csv("data/pipeline/split_df2_with_labels.csv")
+confidence_df = read_excel("annotations/model_db_annotations_og.xlsx") %>%
+  select(file_hash, subtype_confidence) %>%
+  drop_na() %>%
+  rename(old_subtype_confidence = subtype_confidence) 
 
+ant_df2 = ant_df %>%
+  left_join(confidence_df, by="file_hash") %>%
+  mutate(old_subtype_confidence = case_when(file_hash == "0f584fb339c5a5f1dba99b492aa6efe819651643cc39676e216dc9e5e53e2b19" ~ "3 - Highly confident",
+                                           TRUE ~ old_subtype_confidence))  %>%
+  rename(hash = file_hash)
+
+
+
+shap_df = read_csv("data/pipeline/predictions_with_shap.csv")
+
+xgb_pred_df = shap_df %>%
+  select(file_hash, xgb_pred_type, xgb_pred_subtype, xgb_pred_prob) %>%
+  rename(hash = file_hash)
+
+
+
+# 5K AGREEMENT ACROSS ALL RUNS -----------------------------------------------
 
 df = gpt_run1 %>% 
     left_join(gpt_run2, by="hash") %>%
@@ -53,6 +184,233 @@ gpt_cols <- c("gpt_run1", "gpt_run2", "gpt_h", "gpt_mini", "gpt_mini_h")
 
 pairwise_results <- pairwise_kappa(df, gpt_cols)
 
-pairwise_results
 
-View(df)
+df2 <- df %>%
+  mutate(across(all_of(gpt_cols), replace_multiple_preds))
+
+pairwise_results <- pairwise_kappa(df2, gpt_cols)
+
+df2 %>%
+  filter(gpt_run1 != gpt_run2) %>%
+  select(gpt_run1, gpt_run2) %>%
+  View()
+
+all_disagree_plots <- plot_all_top_disagreements(df, gpt_cols, top_n = 20)
+
+all_disagree_plots[["gpt_run1_vs_gpt_mini"]]
+
+
+# 1K AGREEMENT --------------------------------------------------------
+
+df3 = ant_df2 %>%
+  left_join(df2, by="hash") %>%
+  mutate(gpt55_agree = gpt_run1 == gpt_run2) %>% 
+  mutate(gpt5m_agree = gpt_run1 == gpt_mini) %>%
+  mutate(gpt_mh_agree = gpt_mini == gpt_mini_h) %>%
+  mutate(gpt_5h_agree = gpt_run1 == gpt_h) %>%
+  mutate(human_high_confidence = old_subtype_confidence == "3 - Highly confident") %>%
+  drop_na() %>%
+  mutate(across(c(ends_with("_agree"), human_high_confidence), factor_tf))
+  
+t1 = table1(~human_high_confidence | gpt55_agree, data=df3, caption="Columns: GPT run 1 == GPT run2")
+t2 = table1(~human_high_confidence | gpt5m_agree, data=df3, caption= "Columns: GPT run 1 == GPT mini" )
+t3 = table1(~human_high_confidence | gpt_mh_agree, data=df3, caption = "Columns: GPT mini == GPT mini_h")
+t4 = table1(~human_high_confidence | gpt_5h_agree, data=df3, caption = "Columns: GPT run 1 == GPT_h")
+t5 = table1(~gpt55_agree | human_high_confidence, data=df3, caption="Columns: Human High Confidence")
+t6 = table1(~gpt5m_agree | human_high_confidence, data=df3, caption= "Columns: Human High Confidence" )
+t7 = table1(~gpt_mh_agree | human_high_confidence, data=df3, caption = "Columns: Human High Confidence")
+t8= table1(~gpt_5h_agree | human_high_confidence, data=df3, caption = "Columns: Human High Confidence")
+
+delta_df <- df3 %>%
+  select(human_high_confidence, gpt55_agree, gpt5m_agree, gpt_mh_agree, gpt_5h_agree) %>%
+  pivot_longer(
+    cols = starts_with("gpt"),
+    names_to = "comparison",
+    values_to = "agree"
+  ) %>%
+  group_by(comparison, human_high_confidence) %>%
+  summarise(
+    n = n(),
+    agree_rate = mean(agree == "TRUE"),
+    .groups = "drop"
+  ) %>%
+  pivot_wider(
+    names_from = human_high_confidence,
+    values_from = c(n, agree_rate),
+    names_sep = "_"
+  ) %>%
+  mutate(
+    # TRUE = high confidence, FALSE = not high confidence
+    delta_pp = 100 * (agree_rate_TRUE - agree_rate_FALSE)
+  )
+
+delta_df %>%
+  mutate(
+    comparison = recode(
+      comparison,
+      gpt55_agree = "GPT run1 vs run2",
+      gpt5m_agree = "GPT run1 vs mini",
+      gpt_mh_agree = "GPT mini vs mini+heuristic",
+      gpt_5h_agree = "GPT run1 vs heuristic"
+    )
+  ) %>%
+  ggplot(aes(x = comparison, y = delta_pp)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Δ Agreement by Human Confidence",
+    subtitle = "Agreement rate difference (High confidence − Not high confidence)",
+    x = NULL,
+    y = "Δ Agreement (percentage points)"
+  ) +
+  theme_minimal(base_size = 14)
+
+delta_df_labeled <- delta_df %>%
+  mutate(
+    comparison = recode(
+      comparison,
+      gpt55_agree = "GPT run1 vs run2",
+      gpt5m_agree = "GPT run1 vs mini",
+      gpt_mh_agree = "GPT mini vs mini+heuristic",
+      gpt_5h_agree = "GPT run1 vs heuristic"
+    ),
+    label = paste0(
+      round(100 * agree_rate_TRUE, 1), "% vs ",
+      round(100 * agree_rate_FALSE, 1), "%"
+    )
+  )
+
+ggplot(delta_df_labeled, aes(x = comparison, y = delta_pp)) +
+  geom_col() +
+  geom_text(aes(label = label), hjust = -0.05, size = 4) +
+  coord_flip() +
+  labs(
+    title = "Δ Agreement by Human Confidence",
+    subtitle = "High confidence − Not high confidence",
+    x = NULL,
+    y = "Δ Agreement (percentage points)"
+  ) +
+  ylim(min(delta_df_labeled$delta_pp) - 1, max(delta_df_labeled$delta_pp) + 3) +
+  theme_minimal(base_size = 14)
+
+rr_df <- df3 %>%
+  select(human_high_confidence, gpt55_agree, gpt5m_agree, gpt_mh_agree, gpt_5h_agree) %>%
+  pivot_longer(
+    cols = starts_with("gpt"),
+    names_to = "comparison",
+    values_to = "agree"
+  ) %>%
+  mutate(
+    # outcome: disagreement
+    disagree = (agree == "FALSE"),
+    # exposure group: NOT high confidence
+    not_high = (human_high_confidence == "FALSE")
+  ) %>%
+  group_by(comparison) %>%
+  summarise(
+    # counts for 2x2
+    a = sum(disagree & not_high),        # Disagree among NotHigh
+    b = sum(!disagree & not_high),       # Agree among NotHigh
+    c = sum(disagree & !not_high),       # Disagree among High
+    d = sum(!disagree & !not_high),      # Agree among High
+    .groups = "drop"
+  ) %>%
+  mutate(
+    risk_not_high = a / (a + b),
+    risk_high     = c / (c + d),
+    RR = risk_not_high / risk_high,
+    
+    # log(RR) CI (Wald)
+    se_logRR = sqrt( (1/a) - (1/(a+b)) + (1/c) - (1/(c+d)) ),
+    logRR = log(RR),
+    CI_low  = exp(logRR - 1.96 * se_logRR),
+    CI_high = exp(logRR + 1.96 * se_logRR)
+  )
+
+rr_df
+
+
+
+rr_df_plot <- rr_df %>%
+  mutate(
+    comparison = recode(
+      comparison,
+      gpt55_agree = "GPT run1 vs run2",
+      gpt5m_agree = "GPT run1 vs mini",
+      gpt_mh_agree = "GPT mini vs mini+heuristic",
+      gpt_5h_agree = "GPT run1 vs heuristic"
+    )
+  )
+
+ggplot(rr_df_plot, aes(x = RR, y = comparison)) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  geom_errorbarh(aes(xmin = CI_low, xmax = CI_high), height = 0.2) +
+  geom_point(size = 3) +
+  scale_x_log10() +
+  labs(
+    title = "Risk Ratio of Disagreement by Human Confidence",
+    subtitle = "RR = P(Disagree | Not high confidence) / P(Disagree | High confidence)",
+    x = "Risk Ratio (log scale)",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 14)
+
+
+pairwise_results <- pairwise_kappa(df3, gpt_cols)
+
+
+
+
+# ERROR ANALYSIS ----------------------------------------------------------
+
+df4 = xgb_pred_df %>%
+  left_join(df3, by="hash") %>%
+  mutate(
+    gpt_correct  = (gpt_run1 == label),
+    mini_correct = (gpt_mini == label),
+    xgb_correct  = (xgb_pred_subtype == label),
+    
+    gpt_wrong  = !gpt_correct,
+    mini_wrong = !mini_correct,
+    xgb_wrong  = !xgb_correct
+  )
+
+
+overlap3 <- df4 %>%
+  count(gpt_wrong, mini_wrong, xgb_wrong) %>%
+  mutate(pct = n / sum(n)) %>%
+  arrange(desc(n))
+
+overlap3
+
+
+
+# Combine tables into a single HTML document
+html_output <- paste(
+  "<html>",
+  "<head>",
+  "<style>",
+  "body { font-family: Arial, sans-serif; margin: 20px; }",
+  "table { border-collapse: collapse; margin: 20px 0; width: 100%; }",
+  "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }",
+  "th { background-color: #f2f2f2; }",
+  "h2 { margin-top: 30px; }",
+  "</style>",
+  "</head>",
+  "<body>",
+  t1,
+  t2,
+  t3,
+  t4,
+  t5,
+  t6,
+  t7,
+  t8,
+  "</body>",
+  "</html>",
+  sep = "\n"
+)
+
+# Save HTML file
+fname <- paste0("output/confidence_tables_", Sys.Date(), ".html")
+writeLines(html_output, fname)

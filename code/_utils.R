@@ -10,6 +10,11 @@ library(readxl)
 library(flextable)
 library(officer)
 library(here)
+library(irr)
+library(tidytext)
+library(dplyr)
+library(tidyr)
+
 
 # FUNCTIONS ---------------------------------------------------------------
 
