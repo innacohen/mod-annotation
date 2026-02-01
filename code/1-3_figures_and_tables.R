@@ -3,23 +3,58 @@
 source("code/_utils.R")
 
 
-# IMPORT DATA -------------------------------------------------------------
-dd = read_csv("data/pipeline/feature_dd.csv")
-xgb_feat_df = read_csv("data/pipeline/feature_importance_global.csv") 
-pred_df = read_csv("data/pipeline/predictions_with_shap.csv") 
-ant_df = read_csv("data/pipeline/ant_df.csv")
-split_df = read_csv("data/pipeline/split_df2_with_labels.csv") %>% select(file_hash, set)
+library(stringr)
 
-ant_df2 = ant_df %>%
-  left_join(split_df, by="file_hash") %>%
+clean_gpt_pred <- function(gpt_pred, true_subtype) {
+  ifelse(
+    str_detect(gpt_pred, fixed(true_subtype)),
+    true_subtype,
+    "Z Neither"
+  )
+}
+
+
+# IMPORT DATA -------------------------------------------------------------
+shap_df = read_csv("data/pipeline/predictions_with_shap.csv") 
+gpt_run1 = read_excel("data/gpt/gpt_baseline_run1.xlsx") %>% rename(gpt_run1 = mechanisms,gpt_run1_notes = notes)
+gpt_run2 = read_excel("data/gpt/gpt_baseline_run2.xlsx") %>% rename(gpt_run2 = mechanisms, gpt_run2_notes = notes)
+gpt_mini = read_excel("data/gpt/gpt_mini.xlsx")  %>% rename(gpt_mini = mechanisms,gpt_mini_notes = notes) 
+gpt_mini_h = read_excel("data/gpt/gpt_mini_with_heuristics.xlsx") %>% rename(gpt_mini_h = mechanisms, gpt_mini_h_notes = notes)
+gpt_h = read_excel("data/gpt/gpt_with_heuristics.xlsx")  %>% rename(gpt_h = mechanisms, gpt_h_notes = notes) 
+
+
+xgb_pred_df = shap_df %>%
+  select(file_hash, xgb_pred_type, xgb_pred_subtype, xgb_pred_prob, true_subtype, true_type) %>%
+  rename(hash = file_hash)
+
+
+gpt_df = gpt_run1 %>% 
+  left_join(gpt_run2, by="hash") %>%
+  left_join(gpt_h, by="hash") %>%
+  left_join(gpt_mini, by="hash") %>%
+  left_join(gpt_mini_h, by="hash") 
+
+
+pred_df2 = xgb_pred_df %>%
+  inner_join(gpt_df, by="hash") %>%
+  mutate(gpt_run1_clean = ifelse(str_detect(gpt_run1, fixed(true_subtype)), true_subtype, "Z Neither"))
+
+
+pred_df2 %>%
+  filter(str_detect(gpt_run1, ",")) %>%
+  View()
+
+# TABLE 1 -----------------------------------------------------------------
+
+ant_df = read_csv("data/pipeline/split_df2_with_labels.csv") %>%  
   mutate(set = factor(set, levels=c("train","val","test"), labels=c("Train","Validation","Test")))
 
 
-label(ant_df2$type) = "Type"
-label(ant_df2$label) = "Subtype"
+label(ant_df$type) = "Type"
+label(ant_df$label) = "Subtype"
 
 
-t1 = table1(~type+label |set, data= ant_df2, overall=F, extra.col=list(`P-value`=pvalue))
+t1 = table1(~type+label |set, data=ant_df, overall=F, extra.col=list(`P-value`=pvalue))
 
 # list of tables and the doc
 my_list <- list(df1 <- t1flex(t1))
@@ -30,13 +65,6 @@ fname = paste0("../output/mod_file_tables_",Sys.Date(),".docx")
 dir.create(dirname(fname), showWarnings = FALSE, recursive = TRUE)
 print(my_doc, target = fname) %>% invisible()
 
-# GLOBAL VARIABLES --------------------------------------------------------
-
-names(cw_df)
-table(pred_df$true_subtype)
-
-types = c("I Ca (HVA)", "I K (Ca-activated)", "I K (Rare)", "R Glutamate", "I Other (Leak)")
-pred_df2 = pred_df %>% dplyr::filter(true_type %in% types)
 
 
 # PLOTS  -----------------------------------------

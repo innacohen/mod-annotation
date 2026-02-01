@@ -143,16 +143,47 @@ factor_tf <- function(x) {
 # DATA --------------------------------------------------------------------
 
 
-gpt_run1 = read_excel("data/gpt/gpt_baseline_run1.xlsx") %>% rename(gpt_run1 = mechanisms) %>% select(-notes)
-gpt_run2 = read_excel("data/gpt/gpt_baseline_run2.xlsx") %>% rename(gpt_run2 = mechanisms) %>% select(-notes)
-gpt_mini = read_excel("data/gpt/gpt_mini.xlsx")  %>% rename(gpt_mini = mechanisms) %>% select(-notes)
-gpt_mini_h = read_excel("data/gpt/gpt_mini_with_heuristics.xlsx") %>% rename(gpt_mini_h = mechanisms) %>% select(-notes)
-gpt_h = read_excel("data/gpt/gpt_with_heuristics.xlsx")  %>% rename(gpt_h = mechanisms) %>% select(-notes)
+gpt_run1 = read_excel("data/gpt/gpt_baseline_run1.xlsx") %>% rename(gpt_run1 = mechanisms,
+                                                                    gpt_run1_notes = notes)
+
+
+gpt_run2 = read_excel("data/gpt/gpt_baseline_run2.xlsx") %>% rename(gpt_run2 = mechanisms,
+                                                                    gpt_run2_notes = notes)
+
+gpt_mini = read_excel("data/gpt/gpt_mini.xlsx")  %>% rename(gpt_mini = mechanisms,
+                                                            gpt_mini_notes = notes) 
+
+gpt_mini_h = read_excel("data/gpt/gpt_mini_with_heuristics.xlsx") %>% rename(gpt_mini_h = mechanisms,
+                                                                             gpt_mini_h_notes = notes)
+
+gpt_h = read_excel("data/gpt/gpt_with_heuristics.xlsx")  %>% rename(gpt_h = mechanisms,
+                                                                    gpt_h_notes = notes) 
 ant_df = read_csv("data/pipeline/split_df2_with_labels.csv")
+
 confidence_df = read_excel("annotations/model_db_annotations_og.xlsx") %>%
   select(file_hash, subtype_confidence) %>%
-  drop_na() %>%
-  rename(old_subtype_confidence = subtype_confidence) 
+  drop_na(file_hash, subtype_confidence) %>%
+   rename(old_subtype_confidence = subtype_confidence) 
+
+old_inna_notes = read_excel("annotations/model_db_annotations_og.xlsx") %>%
+  select(file_hash, notes_free_text) %>%
+  rename(old_inna_notes = notes_free_text) %>%
+  drop_na()
+
+curr_inna_notes = read_excel("annotations/model_db_annotations.xlsx") %>%
+  select(file_hash, notes_free_text) %>%
+  rename(curr_inna_notes = notes_free_text) %>%
+  drop_na()
+
+all_inna_notes = old_inna_notes %>%
+  full_join(curr_inna_notes, by="file_hash") %>%
+  rename(hash = file_hash)
+
+
+url = read_excel("annotations/model_db_annotations.xlsx") %>%
+  select(file_hash, url) %>%
+  rename(hash = file_hash) %>%
+  drop_na()
 
 ant_df2 = ant_df %>%
   left_join(confidence_df, by="file_hash") %>%
@@ -190,10 +221,11 @@ df2 <- df %>%
 
 pairwise_results <- pairwise_kappa(df2, gpt_cols)
 
-df2 %>%
-  filter(gpt_run1 != gpt_run2) %>%
-  select(gpt_run1, gpt_run2) %>%
-  View()
+#df2 %>%
+#  filter(gpt_run1 != gpt_run2) %>%
+#  select(gpt_run1, gpt_run2) %>%
+#  View()
+
 
 all_disagree_plots <- plot_all_top_disagreements(df, gpt_cols, top_n = 20)
 
@@ -375,15 +407,34 @@ df4 = xgb_pred_df %>%
     xgb_wrong  = !xgb_correct
   )
 
-
 overlap3 <- df4 %>%
   count(gpt_wrong, mini_wrong, xgb_wrong) %>%
   mutate(pct = n / sum(n)) %>%
   arrange(desc(n))
 
-overlap3
+
+# NOTES ANALYSIS ----------------------------------------------------------
 
 
+xgb_correct = df4 %>%
+  filter(xgb_correct == T & gpt_wrong == T & mini_wrong == T) 
+
+extra_cols = c("hash", setdiff(names(xgb_correct), names(df)))
+
+xgb2 = xgb_correct %>%
+  select(all_of(extra_cols)) %>%
+  left_join(df, by="hash") %>%
+  left_join(all_inna_notes, by="hash") %>%
+  left_join(url, by="hash")
+
+
+#look at gpt 5
+xgb3 = xgb2 %>%
+  select(url, label, gpt_run1, gpt_run1_notes, old_inna_notes, old_subtype_confidence) 
+
+
+
+View(xgb3)
 
 # Combine tables into a single HTML document
 html_output <- paste(
