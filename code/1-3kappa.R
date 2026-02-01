@@ -2,162 +2,16 @@
 source("code/_utils.R")
 
 
-pairwise_kappa <- function(df, cols, weight = "unweighted") {
-  pairs <- combn(cols, 2, simplify = FALSE)
-  
-  purrr::map_dfr(pairs, function(p) {
-    
-    x <- df %>%
-      dplyr::select(dplyr::all_of(p)) %>%
-      tidyr::drop_na()
-    
-    out <- irr::kappa2(x, weight = weight)
-    
-    disagree_n <- sum(x[[p[1]]] != x[[p[2]]])
-    agree_n <- sum(x[[p[1]]] == x[[p[2]]])
-    
-    tibble::tibble(
-      rater1     = p[1],
-      rater2     = p[2],
-      n          = nrow(x),
-      agree_n    = agree_n,
-      disagree_n = disagree_n,
-      disagree_pct = disagree_n / nrow(x),
-      kappa      = unname(out$value),
-      z          = unname(out$statistic),
-      p_value    = out$p.value
-    )
-  }) %>%
-    dplyr::arrange(dplyr::desc(kappa))
-}
-
-replace_multiple_preds <- function(x, multiple_label = "Multiple") {
-  x <- trimws(x)
-  
-  dplyr::if_else(
-    is.na(x), NA_character_,
-    dplyr::if_else(grepl(",", x), multiple_label, x)
-  )
-}
-
-
-plot_disagreement_heatmap <- function(df, a, b, top_n = 30) {
-  
-  tab <- df %>%
-    select(all_of(c(a, b))) %>%
-    drop_na() %>%
-    count(.data[[a]], .data[[b]], name = "n") %>%
-    mutate(disagree = .data[[a]] != .data[[b]]) %>%
-    filter(disagree)
-  
-  # keep top disagreements for readability
-  tab_top <- tab %>% slice_max(n, n = top_n)
-  
-  ggplot(tab_top, aes(x = .data[[b]], y = .data[[a]], fill = n)) +
-    geom_tile() +
-    geom_text(aes(label = n), size = 3) +
-    labs(
-      title = paste("Disagreements:", a, "vs", b),
-      x = b,
-      y = a
-    ) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-}
-
-plot_top_disagreements <- function(df, a, b, top_n = 20) {
-  dd <- df %>%
-    select(hash, all_of(c(a, b))) %>%
-    drop_na() %>%
-    filter(.data[[a]] != .data[[b]]) %>%
-    mutate(pair = paste0(.data[[a]], "  →  ", .data[[b]])) %>%
-    count(pair, sort = TRUE) %>%
-    slice_head(n = top_n)
-  
-  ggplot(dd, aes(x = reorder(pair, n), y = n)) +
-    geom_col() +
-    coord_flip() +
-    labs(
-      title = paste("Top disagreements:", a, "vs", b),
-      x = "Disagreement (A → B)",
-      y = "Count"
-    ) +
-    theme_minimal()
-}
-
-get_disagreements <- function(df, a, b, extra_cols = c("file_hash", "hash")) {
-  df %>%
-    select(any_of(extra_cols), all_of(c(a, b))) %>%
-    drop_na() %>%
-    filter(.data[[a]] != .data[[b]])
-}
-
-plot_all_top_disagreements <- function(df, cols, top_n = 20) {
-  pairs <- combn(cols, 2, simplify = FALSE)
-  
-  plots <- purrr::map(pairs, function(p) {
-    plot_top_disagreements(df, a = p[1], b = p[2], top_n = top_n)
-  })
-  
-  names(plots) <- purrr::map_chr(pairs, ~ paste0(.x[1], "_vs_", .x[2]))
-  plots
-}
-
-
-
-plot_all_top_disagreements_faceted <- function(df, cols, top_n = 10) {
-  
-  pairs <- combn(cols, 2, simplify = FALSE)
-  
-  dd <- purrr::map_dfr(pairs, function(p) {
-    a <- p[1]; b <- p[2]
-    
-    df %>%
-      select(all_of(c(a, b))) %>%
-      drop_na() %>%
-      filter(.data[[a]] != .data[[b]]) %>%
-      mutate(pair = paste0(a, " vs ", b),
-             mismatch = paste0(.data[[a]], " → ", .data[[b]])) %>%
-      count(pair, mismatch, sort = TRUE) %>%
-      slice_head(n = top_n)
-  })
-  
-  ggplot(dd, aes(x = reorder_within(mismatch, n, pair), y = n)) +
-    geom_col() +
-    coord_flip() +
-    scale_x_reordered() +
-    facet_wrap(~ pair, scales = "free_y") +
-    theme_minimal() +
-    labs(
-      title = "Top disagreements across all GPT head-to-head comparisons",
-      x = "Mismatch (A → B)",
-      y = "Count"
-    )
-}
-
-factor_tf <- function(x) {
-  factor(x, levels = c(TRUE, FALSE), labels = c("TRUE", "FALSE"))
-}
 
 
 # DATA --------------------------------------------------------------------
 
 
-gpt_run1 = read_excel("data/gpt/gpt_baseline_run1.xlsx") %>% rename(gpt_run1 = mechanisms,
-                                                                    gpt_run1_notes = notes)
-
-
-gpt_run2 = read_excel("data/gpt/gpt_baseline_run2.xlsx") %>% rename(gpt_run2 = mechanisms,
-                                                                    gpt_run2_notes = notes)
-
-gpt_mini = read_excel("data/gpt/gpt_mini.xlsx")  %>% rename(gpt_mini = mechanisms,
-                                                            gpt_mini_notes = notes) 
-
-gpt_mini_h = read_excel("data/gpt/gpt_mini_with_heuristics.xlsx") %>% rename(gpt_mini_h = mechanisms,
-                                                                             gpt_mini_h_notes = notes)
-
-gpt_h = read_excel("data/gpt/gpt_with_heuristics.xlsx")  %>% rename(gpt_h = mechanisms,
-                                                                    gpt_h_notes = notes) 
+gpt_run1 = read_excel("data/gpt/gpt_baseline_run1.xlsx") %>% rename(gpt_run1 = mechanisms, gpt_run1_notes = notes)
+gpt_run2 = read_excel("data/gpt/gpt_baseline_run2.xlsx") %>% rename(gpt_run2 = mechanisms, gpt_run2_notes = notes)
+gpt_mini = read_excel("data/gpt/gpt_mini.xlsx")  %>% rename(gpt_mini = mechanisms, gpt_mini_notes = notes) 
+gpt_mini_h = read_excel("data/gpt/gpt_mini_with_heuristics.xlsx") %>% rename(gpt_mini_h = mechanisms, gpt_mini_h_notes = notes)
+gpt_h = read_excel("data/gpt/gpt_with_heuristics.xlsx")  %>% rename(gpt_h = mechanisms, gpt_h_notes = notes) 
 ant_df = read_csv("data/pipeline/split_df2_with_labels.csv")
 
 confidence_df = read_excel("annotations/model_db_annotations_og.xlsx") %>%
@@ -192,10 +46,9 @@ ant_df2 = ant_df %>%
   rename(hash = file_hash)
 
 
+pred_df = read_csv("data/pipeline/predictions.csv")
 
-shap_df = read_csv("data/pipeline/predictions_with_shap.csv")
-
-xgb_pred_df = shap_df %>%
+xgb_pred_df = pred_df %>%
   select(file_hash, xgb_pred_type, xgb_pred_subtype, xgb_pred_prob) %>%
   rename(hash = file_hash)
 
@@ -431,10 +284,6 @@ xgb2 = xgb_correct %>%
 #look at gpt 5
 xgb3 = xgb2 %>%
   select(url, label, gpt_run1, gpt_run1_notes, old_inna_notes, old_subtype_confidence) 
-
-
-
-View(xgb3)
 
 # Combine tables into a single HTML document
 html_output <- paste(
