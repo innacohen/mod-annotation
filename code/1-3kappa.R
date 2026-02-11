@@ -49,7 +49,7 @@ ant_df2 = ant_df %>%
 pred_df = read_csv("data/pipeline/predictions.csv")
 
 xgb_pred_df = pred_df %>%
-  select(file_hash, xgb_pred_type, xgb_pred_subtype, xgb_pred_prob) %>%
+  select(file_hash, xgb_pred_type, xgb_pred_subtype) %>%
   rename(hash = file_hash)
 
 
@@ -268,7 +268,7 @@ overlap3 <- df4 %>%
 
 # NOTES ANALYSIS ----------------------------------------------------------
 
-
+#Where XGBoost is right but others are wrong
 xgb_correct = df4 %>%
   filter(xgb_correct == T & gpt_wrong == T & mini_wrong == T) 
 
@@ -284,6 +284,11 @@ xgb2 = xgb_correct %>%
 #look at gpt 5
 xgb3 = xgb2 %>%
   select(url, label, gpt_run1, gpt_run1_notes, old_inna_notes, old_subtype_confidence) 
+
+
+gpt_mini_wrong = df4 %>%
+  filter(gpt_wrong == F & mini_wrong == T) 
+
 
 # Combine tables into a single HTML document
 html_output <- paste(
