@@ -14,7 +14,10 @@ library(irr)
 library(tidytext)
 library(dplyr)
 library(tidyr)
-
+library(patchwork)
+library(gt)
+library(yardstick)
+library(ComplexUpset)
 
 # FUNCTIONS ---------------------------------------------------------------
 
@@ -192,3 +195,13 @@ compute_sensitivity <- function(df, pred_col, model_name) {
     mutate(model = model_name)
 }
 
+compute_fp <- function(df, preds, model_name) {
+  df %>%
+    mutate(pred = preds) %>%
+    group_by(true_subtype) %>%
+    summarise(
+      fp = mean(pred != true_subtype) * 100,
+      .groups = "drop"
+    ) %>%
+    mutate(model = model_name)
+}
