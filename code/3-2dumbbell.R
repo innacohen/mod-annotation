@@ -15,20 +15,21 @@ count_df <- pred_df %>%
 # GPT 5.2
 # ------------------------------------------------------------------
 sens_df_gpt <- bind_rows(
-  compute_sensitivity(pred_df, pred_df$xgb_pred_subtype,     "XGB"),
-  compute_sensitivity(pred_df, pred_df$gpt_bl_pred_subtype, "GPT"),
-  compute_sensitivity(pred_df, pred_df$gpt_h_pred_subtype,  "GPT_H")
+  compute_tp(pred_df, pred_df$xgb_pred_subtype,     "XGB"),
+  compute_tp(pred_df, pred_df$gpt_bl_pred_subtype, "GPT"),
+  compute_tp(pred_df, pred_df$gpt_h_pred_subtype,  "GPT_H")
 )
+
 
 plot_df_gpt <- sens_df_gpt %>%
   left_join(
     sens_df_gpt %>% filter(model == "XGB") %>%
-      select(true_subtype, xgb = sensitivity),
+      select(true_subtype, xgb = tp),
     by = "true_subtype"
   ) %>%
   left_join(
     sens_df_gpt %>% filter(model == "GPT") %>%
-      select(true_subtype, gpt = sensitivity),
+      select(true_subtype, gpt = tp),
     by = "true_subtype"
   ) %>%
   mutate(
@@ -42,9 +43,9 @@ plot_df_gpt <- sens_df_gpt %>%
     plot_model = case_when(
       model == "XGB" ~ "XGB",
       
-      sensitivity == xgb ~ "TIE_XGB",
+      tp == xgb ~ "TIE_XGB",
       
-      model == "GPT_H" & sensitivity == gpt ~ "GPT_H_SAME",
+      model == "GPT_H" & tp == gpt ~ "GPT_H_SAME",
       
       TRUE ~ model
     )
@@ -68,11 +69,11 @@ colors_gpt <- c(
 fig_gpt <- ggplot(plot_df_gpt, aes(y = fct_rev(true_subtype))) +
   geom_segment(
     data = plot_df_gpt %>% filter(model != "XGB"),
-    aes(x = xgb, xend = sensitivity, yend = fct_rev(true_subtype)),
+    aes(x = xgb, xend = tp, yend = fct_rev(true_subtype)),
     color = "grey70",
     linewidth = 0.7
   ) +
-  geom_point(aes(x = sensitivity, color = plot_model), size = 3) +
+  geom_point(aes(x = tp, color = plot_model), size = 3) +
   scale_color_manual(
     values = colors_gpt,
     breaks = c("XGB", "GPT", "GPT_H", "GPT_H_SAME", "TIE_XGB"),
@@ -109,11 +110,11 @@ y_labels_mini <- plot_df_mini %>%
 fig_gpt_mini <- ggplot(plot_df_mini, aes(y = fct_rev(true_subtype))) +
   geom_segment(
     data = plot_df_mini %>% filter(model != "XGB"),
-    aes(x = xgb, xend = sensitivity, yend = fct_rev(true_subtype)),
+    aes(x = xgb, xend = tp, yend = fct_rev(true_subtype)),
     color = "grey70",
     linewidth = 0.7
   ) +
-  geom_point(aes(x = sensitivity, color = plot_model), size = 3) +
+  geom_point(aes(x = tp, color = plot_model), size = 3) +
   scale_color_manual(
     values = colors_mini,
     breaks = c("XGB", "GPT_MINI", "GPT_MINI_H", "GPT_MINI_H_SAME"),

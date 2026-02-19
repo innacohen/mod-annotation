@@ -18,7 +18,10 @@ library(patchwork)
 library(gt)
 library(yardstick)
 library(ComplexUpset)
-
+library(networkD3)
+library(ggalluvial)
+library(scales)
+library(scatterpie)
 # FUNCTIONS ---------------------------------------------------------------
 
 pvalue <- function(x, ...) {
@@ -184,12 +187,12 @@ factor_tf <- function(x) {
   factor(x, levels = c(TRUE, FALSE), labels = c("TRUE", "FALSE"))
 }
 
-compute_sensitivity <- function(df, pred_col, model_name) {
+compute_tp <- function(df, pred_col, model_name) {
   df %>%
     mutate(correct = pred_col == true_subtype) %>%
     group_by(true_subtype) %>%
     summarise(
-      sensitivity = mean(correct, na.rm = TRUE) * 100,
+      tp = mean(correct, na.rm = TRUE) * 100,
       .groups = "drop"
     ) %>%
     mutate(model = model_name)
