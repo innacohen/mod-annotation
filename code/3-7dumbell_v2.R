@@ -59,6 +59,17 @@ pred_df2 <- pred_df %>%
     gpt_mini_h_pred_subtype
   )
 
+# ------------------------------------------------
+# Total N per true subtype (for y-axis labels)
+# ------------------------------------------------
+
+count_df <- pred_df2 %>%
+  filter(!is.na(true_subtype)) %>%
+  count(true_subtype, name = "n_total") %>%
+  mutate(
+    subtype_label = paste0(true_subtype, ", n = ", n_total)
+  )
+
 # ================================================================
 # Compute sensitivities (long format)
 # ================================================================
@@ -87,20 +98,20 @@ tie_df <- sens_df %>%
 # Join back to long dataframe
 sens_df2 <- sens_df %>%
   left_join(tie_df, by = "true_subtype") %>%
+  left_join(count_df, by = "true_subtype") %>%
   mutate(
     plot_model = case_when(
-      three_way_tie                     ~ "TIE_XGB",      # BLACK
+      three_way_tie                          ~ "TIE_XGB",
       gpt_tie & model %in% c("GPT","GPT_H") ~ "GPT_H_SAME",
-      TRUE                              ~ model
+      TRUE                                  ~ model
     )
   )
-
 # ================================================================
 # Dumbbell ranges (min -> max per subtype)
 # ================================================================
 
 range_df <- sens_df2 %>%
-  group_by(true_subtype) %>%
+  group_by(subtype_label) %>%
   summarise(
     xmin = min(sensitivity, na.rm = TRUE),
     xmax = max(sensitivity, na.rm = TRUE),
@@ -109,48 +120,68 @@ range_df <- sens_df2 %>%
 
 ggplot(
   sens_df2,
-  aes(x = sensitivity, y = fct_reorder(true_subtype, sensitivity))
+  aes(
+    x = sensitivity,
+    y = fct_reorder(subtype_label, sensitivity)
+  )
 ) +
   
-  # Dumbbell line: lowest -> highest model
-  geom_segment(
-    data = range_df,
-    aes(
-      x = xmin,
-      xend = xmax,
-      y = true_subtype,
-      yend = true_subtype
-    ),
-    inherit.aes = FALSE,
-    color = "grey75",
-    linewidth = 1
-  ) +
+  # ---------------------------------------
+# Dumbbell line: min -> max per subtype
+# ---------------------------------------
+geom_segment(
+  data = range_df,
+  aes(
+    x = xmin,
+    xend = xmax,
+    y = subtype_label,
+    yend = subtype_label
+  ),
+  inherit.aes = FALSE,
+  color = "grey75",
+  linewidth = 1
+) +
   
-  # Points
-  geom_point(
-    aes(color = plot_model),
-    size = 3,
-    position = position_nudge(
-      x = ifelse(sens_df2$model == "GPT", 0.002,
-                 ifelse(sens_df2$model == "GPT_H", -0.002, 0))
-    )
-  ) +
+  # ---------------------------------------
+# Points
+# ---------------------------------------
+geom_point(
+  aes(color = plot_model),
+  size = 3,
+  position = position_nudge(
+    x = ifelse(sens_df2$model == "GPT",   0.002,
+               ifelse(sens_df2$model == "GPT_H", -0.002, 0))
+  )
+) +
   
-  scale_color_manual(values = colors_gpt) +
+  # ---------------------------------------
+# Colors
+# ---------------------------------------
+scale_color_manual(values = colors_gpt) +
   
-  scale_x_continuous(
-    labels = scales::percent_format(accuracy = 1),
-    limits = c(0, 1)
-  ) +
+  # ---------------------------------------
+# X axis
+# ---------------------------------------
+scale_x_continuous(
+  labels = scales::percent_format(accuracy = 1),
+  limits = c(0, 1)
+) +
   
-  labs(
-    x = "Sensitivity",
-    y = NULL,
-    title = "Subtype-Level Sensitivity"
-  ) +
+  # ---------------------------------------
+# Labels
+# ---------------------------------------
+labs(
+  x = "Sensitivity",
+  y = NULL,
+  title = "Subtype-Level Sensitivity"
+) +
   
-  theme_minimal(base_size = 13) +
+  # ---------------------------------------
+# Theme
+# ---------------------------------------
+theme_minimal(base_size = 13) +
   theme(
     panel.grid.major.y = element_blank(),
-    panel.grid.minor = element_blank()
+    panel.grid.minor   = element_blank(),
+    legend.title = element_blank()
   )
