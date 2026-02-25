@@ -1,0 +1,37 @@
+install.packages("VennDiagram")
+library(VennDiagram)
+
+venn.plot <- draw.quintuple.venn(
+  area1 = 10,
+  area2 = 12,
+  area3 = 14,
+  area4 = 8,
+  area5 = 9,
+  n12 = 4,
+  n13 = 3,
+  n14 = 2,
+  n15 = 1,
+  n23 = 5,
+  n24 = 2,
+  n25 = 1,
+  n34 = 3,
+  n35 = 2,
+  n45 = 1,
+  n123 = 2,
+  n124 = 1,
+  n125 = 0,
+  n134 = 1,
+  n135 = 0,
+  n145 = 0,
+  n234 = 1,
+  n235 = 0,
+  n245 = 0,
+  n345 = 0,
+  n1234 = 0,
+  n1235 = 0,
+  n1245 = 0,
+  n1345 = 0,
+  n2345 = 0,
+  n12345 = 0,
+  category = c("A","B","C","D","E")
+)

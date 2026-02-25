@@ -1,5 +1,29 @@
 source("code/_utils.R")
 
+library(dplyr)
+library(caret)
+library(purrr)
+
+compute_sensitivity <- function(df, pred_col, model_name) {
+  
+  df2 <- df %>%
+    filter(!is.na(true_subtype)) %>%
+    mutate(
+      truth = factor(true_subtype),
+      pred  = factor({{ pred_col }}, levels = levels(truth))
+    )
+  
+  cm <- caret::confusionMatrix(df2$pred, df2$truth)
+  
+  tibble(
+    true_subtype = rownames(cm$byClass),
+    sensitivity  = cm$byClass[, "Sensitivity"],
+    model = model_name
+  ) %>%
+    mutate(
+      true_subtype = sub("^Class:\\s*", "", true_subtype)
+    )
+}
 
 # ------------------------------------------------------------------
 # IMPORT DATA
@@ -15,9 +39,9 @@ count_df <- pred_df %>%
 # GPT 5.2
 # ------------------------------------------------------------------
 sens_df_gpt <- bind_rows(
-  compute_tp(pred_df, pred_df$xgb_pred_subtype,     "XGB"),
-  compute_tp(pred_df, pred_df$gpt_bl_pred_subtype, "GPT"),
-  compute_tp(pred_df, pred_df$gpt_h_pred_subtype,  "GPT_H")
+  compute_sensitivity(pred_df, pred_df$xgb_pred_subtype,     "XGB"),
+  compute_sensitivity(pred_df, pred_df$gpt_bl_pred_subtype, "GPT"),
+  compute_sensitivity(pred_df, pred_df$gpt_h_pred_subtype,  "GPT_H")
 )
 
 
