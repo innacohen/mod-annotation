@@ -55,9 +55,16 @@ pred_df2 <- pred_df %>%
     file_hash,
     true_subtype,
     xgb_pred_subtype,
+    gpt_bl_pred_subtype,
+    gpt_h_pred_subtype,
     gpt_mini_pred_subtype,
     gpt_mini_h_pred_subtype
   )
+
+
+# GPT 5.2 SENSITIVITY -----------------------------------------------------
+
+
 
 # ------------------------------------------------
 # Total N per true subtype (for y-axis labels)
@@ -75,9 +82,8 @@ count_df <- pred_df2 %>%
 # ================================================================
 
 sens_xgb   <- compute_sensitivity(pred_df2, xgb_pred_subtype, "XGB")
-sens_gpt   <- compute_sensitivity(pred_df2, gpt_mini_pred_subtype, "GPT")
-sens_gpt_h <- compute_sensitivity(pred_df2, gpt_mini_h_pred_subtype, "GPT_H")
-
+sens_gpt   <- compute_sensitivity(pred_df2, gpt_bl_pred_subtype, "GPT")
+sens_gpt_h <- compute_sensitivity(pred_df2, gpt_h_pred_subtype, "GPT_H")
 sens_df <- bind_rows(sens_xgb, sens_gpt, sens_gpt_h)
 
 
@@ -173,7 +179,7 @@ scale_x_continuous(
 labs(
   x = "Sensitivity",
   y = NULL,
-  title = "Subtype-Level Sensitivity"
+  title = "A. GPT 5.2 Sensitivity"
 ) +
   
   # ---------------------------------------
@@ -185,3 +191,135 @@ theme_minimal(base_size = 13) +
     panel.grid.minor   = element_blank(),
     legend.title = element_blank()
   )
+
+
+# GPT MINI ----------------------------------------------------------------
+
+
+
+# ------------------------------------------------
+# Total N per true subtype (for y-axis labels)
+# ------------------------------------------------
+
+count_df <- pred_df2 %>%
+  filter(!is.na(true_subtype)) %>%
+  count(true_subtype, name = "n_total") %>%
+  mutate(
+    subtype_label = paste0(true_subtype, ", n = ", n_total)
+  )
+
+# ================================================================
+# Compute sensitivities (long format)
+# ================================================================
+
+sens_xgb   <- compute_sensitivity(pred_df2, xgb_pred_subtype, "XGB")
+sens_gpt   <- compute_sensitivity(pred_df2, gpt_mini_pred_subtype, "GPT")
+sens_gpt_h <- compute_sensitivity(pred_df2, gpt_mini_h_pred_subtype, "GPT_H")
+sens_df <- bind_rows(sens_xgb, sens_gpt, sens_gpt_h)
+
+
+# Find GPT vs GPT_H ties per subtype
+tie_df <- sens_df %>%
+  pivot_wider(names_from = model, values_from = sensitivity) %>%
+  mutate(
+    three_way_tie =
+      abs(XGB - GPT)   < 1e-8 &
+      abs(XGB - GPT_H) < 1e-8,
+    
+    gpt_tie =
+      abs(GPT - GPT_H) < 1e-8 & !three_way_tie
+  ) %>%
+  select(true_subtype, three_way_tie, gpt_tie)
+
+
+# Join back to long dataframe
+sens_df2 <- sens_df %>%
+  left_join(tie_df, by = "true_subtype") %>%
+  left_join(count_df, by = "true_subtype") %>%
+  mutate(
+    plot_model = case_when(
+      three_way_tie                          ~ "TIE_XGB",
+      gpt_tie & model %in% c("GPT","GPT_H") ~ "GPT_H_SAME",
+      TRUE                                  ~ model
+    )
+  )
+# ================================================================
+# Dumbbell ranges (min -> max per subtype)
+# ================================================================
+
+range_df <- sens_df2 %>%
+  group_by(subtype_label) %>%
+  summarise(
+    xmin = min(sensitivity, na.rm = TRUE),
+    xmax = max(sensitivity, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(
+  sens_df2,
+  aes(
+    x = sensitivity,
+    y = fct_reorder(subtype_label, sensitivity)
+  )
+) +
+  
+  # ---------------------------------------
+# Dumbbell line: min -> max per subtype
+# ---------------------------------------
+geom_segment(
+  data = range_df,
+  aes(
+    x = xmin,
+    xend = xmax,
+    y = subtype_label,
+    yend = subtype_label
+  ),
+  inherit.aes = FALSE,
+  color = "grey75",
+  linewidth = 1
+) +
+  
+  # ---------------------------------------
+# Points
+# ---------------------------------------
+geom_point(
+  aes(color = plot_model),
+  size = 3,
+  position = position_nudge(
+    x = ifelse(sens_df2$model == "GPT",   0.002,
+               ifelse(sens_df2$model == "GPT_H", -0.002, 0))
+  )
+) +
+  
+  # ---------------------------------------
+# Colors
+# ---------------------------------------
+scale_color_manual(values = colors_gpt) +
+  
+  # ---------------------------------------
+# X axis
+# ---------------------------------------
+scale_x_continuous(
+  labels = scales::percent_format(accuracy = 1),
+  limits = c(0, 1)
+) +
+  
+  # ---------------------------------------
+# Labels
+# ---------------------------------------
+labs(
+  x = "Sensitivity",
+  y = NULL,
+  title = "B. GPT mini Sensitivity"
+) +
+  
+  # ---------------------------------------
+# Theme
+# ---------------------------------------
+theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    legend.title = element_blank()
+  )
+
