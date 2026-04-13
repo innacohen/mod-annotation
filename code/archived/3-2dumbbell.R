@@ -28,7 +28,7 @@ compute_sensitivity <- function(df, pred_col, model_name) {
 # ------------------------------------------------------------------
 # IMPORT DATA
 # ------------------------------------------------------------------
-
+library(tidyverse)
 pred_df <- read_csv("data/pipeline/predictions.csv")
 
 # Total N per true subtype (shared across both figures)
