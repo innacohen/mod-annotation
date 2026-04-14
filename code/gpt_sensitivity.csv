@@ -1,0 +1,58 @@
+true_subtype,sensitivity,model
+I Ca (HVA),1.0,XGB
+I Ca (Rare),0.3333333333333333,XGB
+I Ca (T-type LT),0.6363636363636364,XGB
+I H,0.75,XGB
+I K (A-type),0.8421052631578947,XGB
+I K (Ca-activated),0.75,XGB
+I K (Delayed Rectifier),0.6363636363636364,XGB
+I K (M-type),0.8,XGB
+I K (Rare),0.36363636363636365,XGB
+I Na (Persistent),0.16666666666666666,XGB
+I Na (Rare),0.75,XGB
+I Na (Slow inactivation),0.0,XGB
+I Na (Transient),0.8421052631578947,XGB
+I Other (Rare),0.75,XGB
+R GABA,0.375,XGB
+R Glutamate (AMPA),0.0,XGB
+R Glutamate (NMDA),0.8,XGB
+R Other (General),0.0,XGB
+Z Neither,0.9076923076923077,XGB
+I Ca (HVA),0.8636363636363636,GPT
+I Ca (Rare),0.0,GPT
+I Ca (T-type LT),1.0,GPT
+I H,0.875,GPT
+I K (A-type),0.8947368421052632,GPT
+I K (Ca-activated),0.8333333333333334,GPT
+I K (Delayed Rectifier),1.0,GPT
+I K (M-type),1.0,GPT
+I K (Rare),0.7272727272727273,GPT
+I Na (Persistent),0.8333333333333334,GPT
+I Na (Rare),0.125,GPT
+I Na (Slow inactivation),1.0,GPT
+I Na (Transient),1.0,GPT
+I Other (Rare),0.875,GPT
+R GABA,1.0,GPT
+R Glutamate (AMPA),1.0,GPT
+R Glutamate (NMDA),1.0,GPT
+R Other (General),0.0,GPT
+Z Neither,0.9180327868852459,GPT
+I Ca (HVA),1.0,GPT_H
+I Ca (Rare),0.0,GPT_H
+I Ca (T-type LT),0.9090909090909091,GPT_H
+I H,1.0,GPT_H
+I K (A-type),0.9473684210526315,GPT_H
+I K (Ca-activated),0.8333333333333334,GPT_H
+I K (Delayed Rectifier),1.0,GPT_H
+I K (M-type),1.0,GPT_H
+I K (Rare),0.8181818181818182,GPT_H
+I Na (Persistent),1.0,GPT_H
+I Na (Rare),0.125,GPT_H
+I Na (Slow inactivation),1.0,GPT_H
+I Na (Transient),1.0,GPT_H
+I Other (Rare),0.8571428571428571,GPT_H
+R GABA,1.0,GPT_H
+R Glutamate (AMPA),1.0,GPT_H
+R Glutamate (NMDA),1.0,GPT_H
+R Other (General),0.0,GPT_H
+Z Neither,0.9333333333333333,GPT_H
