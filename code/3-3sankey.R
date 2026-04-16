@@ -93,7 +93,13 @@ ggsave(
   bg       = "white"
 )
 
-
+ggsave(
+  filename = "figures/sankey_errors.pdf",
+  plot     = p,
+  width    = 12,
+  height   = 8,
+  device   = cairo_pdf
+)
 
 # Version 2 ---------------------------------------------------------------
 
