@@ -108,7 +108,7 @@ Subtype comparison visualizations
 
 ---
 ## Licence
-This project is released under the BSD 3-Clause License, allowing reuse and modification with attribution.
+- This project is released under the BSD 3-Clause License, allowing reuse and modification with attribution.
 ---
 ## Acknowledgments
 - ModelDB for providing MOD file data
