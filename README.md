@@ -44,12 +44,13 @@ The workflow consists of the following major steps:
    - Extracts dynamic features (e.g., time-to-peak, decay metrics).
 
 4. **Modeling & Analysis**
+   - `1-query-modeldb-mod-files-full.py`
    - `2-ml_pipeline.ipynb`
-   - `2-gpt.ipynb`
+   - Uses an LLM to classify biological mechanisms inside of a mod-file and stores unique results in a database
    - Trains machine learning models and evaluates predictions.
 
 5. **Evaluation & Metrics**
-   - `check_labels.R`, `kappa.R`
+   - `kappa.R`
    - Computes agreement, confusion matrices, and performance metrics.
 
 6. **Visualization**
