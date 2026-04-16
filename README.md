@@ -62,8 +62,8 @@ The workflow consists of the following major steps:
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
+git clone https://github.com/innacohen/mod-annotation.git
+cd mod-annotation
 ```
 
 **2. Set up environment**
@@ -98,7 +98,7 @@ Subtype comparison visualizations
 
 ## Notes
 - Some scripts assume specific file paths (e.g., cluster environments). You may need to modify paths locally.
-- Intermediate files (e.g., .RData, CSV outputs) are reused across steps.
+- Intermediate files (e.g, CSV outputs) are reused across steps.
 - Not all scripts must be run sequentially. Figure scripts can often be run independently once data is prepared.
 
 ## Licence
@@ -107,7 +107,8 @@ Subtype comparison visualizations
 ## Acknowledgments
 - ModelDB for providing MOD file data
 - Python and R open-source libraries used throughout the project
-- Portions of the pipeline were developed iteratively with assistance from LLM-based tools (e.g., ChatGPT, Claude) for code structuring and debugging
+- Portions of the pipeline were developed iteratively with assistance from LLM-based tools (e.g., ChatGPT, Claude) for code structuring and debugging.
+- 
 ## Contact
 For questions or issues, please open a GitHub issue or contact the repository owner.
 
