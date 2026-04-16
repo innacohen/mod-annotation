@@ -27,8 +27,6 @@ This repository contains code, data, and figures for analyzing and classifying i
   - Contains all generated figures (main + supplemental).
   - Includes Sankey diagrams, panel plots, and performance visualizations.
 
----
-
 ## Pipeline Overview
 
 The workflow consists of the following major steps:
@@ -60,8 +58,6 @@ The workflow consists of the following major steps:
    - `3-heatmap.R`
    - Generates all manuscript figures.
 
----
-
 ## How to Run
 
 **1. Clone the repository**
@@ -92,7 +88,6 @@ python code/_get_mod_dynamics.py
 # Modeling
 jupyter notebook code/2-ml_pipeline.ipynb
 ```
----
 ## Outputs
 - Model predictions and evaluation metrics (CSV files)
 - Feature importance tables
@@ -100,21 +95,19 @@ jupyter notebook code/2-ml_pipeline.ipynb
 Sankey diagrams
 Performance plots (sensitivity, PPV)
 Subtype comparison visualizations
----
+
 ## Notes
 - Some scripts assume specific file paths (e.g., cluster environments). You may need to modify paths locally.
 - Intermediate files (e.g., .RData, CSV outputs) are reused across steps.
 - Not all scripts must be run sequentially. Figure scripts can often be run independently once data is prepared.
 
----
 ## Licence
 - This project is released under the BSD 3-Clause License, allowing reuse and modification with attribution.
----
+
 ## Acknowledgments
 - ModelDB for providing MOD file data
 - Python and R open-source libraries used throughout the project
 - Portions of the pipeline were developed iteratively with assistance from LLM-based tools (e.g., ChatGPT, Claude) for code structuring and debugging
----
 ## Contact
 For questions or issues, please open a GitHub issue or contact the repository owner.
 
