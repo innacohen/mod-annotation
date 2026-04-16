@@ -88,13 +88,6 @@ python code/_get_mod_dynamics.py
 # Modeling
 jupyter notebook code/2-ml_pipeline.ipynb
 ```
-## Outputs
-- Model predictions and evaluation metrics (CSV files)
-- Feature importance tables
-- Figures for manuscript:
-Sankey diagrams
-Performance plots (sensitivity, PPV)
-Subtype comparison visualizations
 
 ## Notes
 - Some scripts assume specific file paths (e.g., cluster environments). You may need to modify paths locally.
@@ -102,7 +95,7 @@ Subtype comparison visualizations
 - Not all scripts must be run sequentially. Figure scripts can often be run independently once data is prepared.
 
 ## Licence
-- This project is released under the BSD 3-Clause License, allowing reuse and modification with attribution.
+This project is released under the BSD 3-Clause License, allowing reuse and modification with attribution.
 
 ## Acknowledgments
 - ModelDB for providing MOD file data
