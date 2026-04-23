@@ -103,7 +103,3 @@ This project is released under the BSD 3-Clause License, allowing reuse and modi
 - Python and R open-source libraries used throughout the project
 - Portions of the pipeline were developed iteratively with assistance from LLM-based tools (e.g., ChatGPT, Claude) for code structuring and debugging.
   
-## Contact
-For questions or issues, please open a GitHub issue or contact the repository owner.
-
-
