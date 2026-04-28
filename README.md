@@ -1,6 +1,7 @@
 # Mod-File Subtype Classification & Analysis
 
 This repository contains code, data, and figures for analyzing and classifying ion channel and receptor subtypes from MOD files using machine learning and simulation-derived features.
+For more information, please review the preprint: https://www.biorxiv.org/content/10.64898/2026.04.23.720371v1
 
 ## Repository Structure
 
